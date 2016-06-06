@@ -1,3 +1,4 @@
 *.bmp
 Debug/*
 Release/*
+cont*/*
