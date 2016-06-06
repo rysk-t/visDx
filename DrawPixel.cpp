@@ -9,12 +9,12 @@
 #include <chrono>
 #include <malloc.h>
 #include <stdio.h>
+#define PI 3.141592654
 
 using namespace std;
-
 std::vector<std::string> get_file_path_in_dir(const std::string& dir_name, const std::string& extension);
 
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	FILE *fp;
 	CTime theTime;
 	CFileTime tstart, tend;
@@ -24,18 +24,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	unsigned int blankimg;
 	unsigned int Handles[2048 * 16];     // データハンドル格納
-	unsigned int FullHandle[2048 * 16];
 	unsigned char *Data;
 	int graphSize;
-
+	errno_t error;
 
 	unsigned int isif = 0;
 	unsigned int durf = 1;
 	unsigned int endf = 60;
 	unsigned int Count = 0;
-	unsigned int i = 0;
+	unsigned int triNum = 10;
+	int i = 0;
 	int SizeX = 1920;
 	int SizeY = 1200;
+	int Xbuf, Ybuf;
+	bool bRAM_Fullbuffer = false;
+
 
 	// Log file
 	std::ofstream wf;
@@ -46,7 +49,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	theTime = CTime::GetCurrentTime();
 	wf << theTime.Format("%Y%d%H%M") << endl;
 
-	ChangeWindowMode(false); // ウィンドウモードに設定
+	ChangeWindowMode(true); // ウィンドウモードに設定
 	SetGraphMode(SizeX, SizeY, 32);
 	SetBackgroundColor(128, 128, 128);
 	if (DxLib_Init())
@@ -56,80 +59,97 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	//Get file name 
 	filenames = (get_file_path_in_dir(imgroot, "bmp"));
+	int textc = GetColor(0, 0, 0);
 	for (size_t i = 0; i < filenames.size(); i++)
 	{
-		//Handles[i] = LoadGraph((imgroot + filenames[i]).c_str());
-		//wf << filenames[i] << endl;
-
-		fp = fopen((imgroot + filenames[i]).c_str(), "rb");
+		//2GB 以上はバッファできない (32bit)
+	/*	error = fopen_s(&fp, (imgroot + filenames[i]).c_str(), "rb");
 		fseek(fp, 0L, SEEK_END);
 		graphSize = ftell(fp);
 		fseek(fp, 0L, SEEK_SET);
 		Data = (unsigned char *)malloc(graphSize);
+		fread(Data, graphSize, 1, fp);
+		Handles[i] = CreateGraphFromMem(Data, graphSize);
+		fclose(fp);
+		free(Data);*/
+		
 
-		FullHandle[i] = FileRead_fullyLoad((imgroot + filenames[i]).c_str());
-		FileRead_fullyLoad_getImage(FullHandle[i]);
+		Handles[i] = LoadGraph((imgroot + filenames[i]).c_str());
+		if (0 == i % 256) {
+			ClearDrawScreen();
+			DrawFormatString(0, 0, textc, "%d / %d : images", i, filenames.size());
+			ScreenFlip();
+		}
+
 	}
 
 	// Blank
-	blankimg = LoadGraph("blank.bmp");
-	int textc = GetColor(0, 0, 0);
-	DrawFormatString(0, 0, textc, "READY: %d images", filenames.size());
-	//WaitKey();
 	ClearDrawScreen();
-	Sleep(100);
+	blankimg = LoadGraph("blank.bmp");
+	DrawFormatString(0, 0, textc, "READY: %d images", filenames.size());
+	ScreenFlip();
+
+	WaitKey();
 	Beep(440*1000, 100);
 	//速度実験用
 
-	for (size_t j = 0; j < 5; j++) {
+	for (size_t i = 0; i < 60; i++) {
+		ClearDrawScreen();
+		DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
+		ScreenFlip();
+	}
+
+	for (size_t j = 0; j < triNum; j++) {
 		// FPS測定用関数
-		const auto startTime = std::chrono::system_clock::now();
+		//auto startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
 
 		// 描画開始
 		//while (i < filenames.size())
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
-			ClearDrawScreen();
+
+			//GetMousePoint(&Xbuf, &Ybuf);
+			//clsDx();
+			//DrawFormatString(0, 0, textc, "%d / %d : images", i, filenames.size()); //TODO TEST
 			if (isif != 0) {
 				while (!ScreenFlip()) {
 					Count++;
 					if (Count >= isif) {
-						//1秒たった時の処理
 						Count = 0;
 						break;
 					}
 				}
 			}
-			DrawRotaGraph(960, 600, 1, 0., Handles[i], FALSE);
+			DrawGraph(960, 600, Handles[i], FALSE);
+//			DrawRotaGraph(Xbuf % 1920, Ybuf % 1080, 1, 0 * i % 360 * PI / 180, Handles[i], FALSE);
 			while (!ScreenFlip()) {
 				Count++;
 				if (Count == durf) {
 					Count = 0;
 					break;
 				}
+				wf << Count;
 			}
-
-			// こっちは劇的に遅い
-			/*while (!ScreenFlip() && Count < durf) {
-				Count++;
-			}; Count = 0;
-			//*/
-			i++;
+			ClearDrawScreen();
+			//tend = CFileTime::GetCurrentTime(); ;
+			//ctimep = tend - tstart;
+			//printfDx("%f", 1000.0/ctimep.GetTimeSpan());
 		}
+
 		i = 0;
 		// FPS算出 & 記録
 		const auto endTime = std::chrono::system_clock::now();
 		tend = CFileTime::GetCurrentTime(); ;
 		ctimep = tend - tstart;
-		const auto timeSpan = endTime - startTime;
-		//wf << filenames.size() << " [frames]" <<endl;
-		//wf << ctimep.GetTimeSpan() / 10000 << endl; //[ms]
-		//wf << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << " [ms]" << std::endl;
-		wf << float(1000.0*filenames.size()) / (ctimep.GetTimeSpan() / 10000) << " [FPS]" << endl;
+//		auto timeSpan = endTime - startTime;
+		wf << filenames.size() << " [frames], ";
+		wf << ctimep.GetTimeSpan() / 10000.0 << " [ms (ctime)], "; //[ms]
+		//wf << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << " [ms (chrono)], " ;
+		wf << float(1000.0*filenames.size()) / (ctimep.GetTimeSpan() / 10000.0) << " [FPS]" << endl;
 		//wf << float(filenames.size()) / float(std:chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count()) << endl;
 		Beep(440*1000, 100);
-	}//速度実験用
+	}
 
 	// 最後にendframe分だけまつ
 	Count = 0;
@@ -142,7 +162,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 	}
 
-	Beep(440 * 1000, 1000);
+	Beep(440 * 1000, 100);
+	Beep(440 * 1000, 100);
 	ProcessMessage();
 	ClearDrawScreen();
 
@@ -152,11 +173,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//wf << filenames.size() << endl;
 	for (size_t i = 0; i < filenames.size(); i++)
 	{
-		FileRead_fullyLoad_delete(FullHandle[i]);
 	}
 
 	wf.close();
 	return 0;
+	FreeConsole();//コンソールの解放
+
 }
 
 

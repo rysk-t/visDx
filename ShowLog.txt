@@ -1,0 +1,12 @@
+Images: samples/
+2016061639
+2145 [frames], 35782 [ms (ctime)], 59.9463 [FPS]
+2145 [frames], 35764.7 [ms (ctime)], 59.9754 [FPS]
+2145 [frames], 35764.9 [ms (ctime)], 59.975 [FPS]
+2145 [frames], 35764.3 [ms (ctime)], 59.976 [FPS]
+2145 [frames], 35764.6 [ms (ctime)], 59.9755 [FPS]
+2145 [frames], 35765.2 [ms (ctime)], 59.9745 [FPS]
+2145 [frames], 35764.4 [ms (ctime)], 59.9759 [FPS]
+2145 [frames], 35764.8 [ms (ctime)], 59.9751 [FPS]
+2145 [frames], 35764.6 [ms (ctime)], 59.9755 [FPS]
+2145 [frames], 35764.3 [ms (ctime)], 59.9759 [FPS]
