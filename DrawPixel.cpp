@@ -9,20 +9,64 @@
 #include <chrono>
 #include <malloc.h>
 #include <stdio.h>
+#include <math.h>
+
 #define PI 3.141592654
 
 using namespace std;
 std::vector<std::string> get_file_path_in_dir(const std::string& dir_name, const std::string& extension);
 int getFileName(char* fileName, int fileNameLength, const char* fileFilter);
+//class Fps;
+class Fps {
+	int mStartTime;         //測定開始時刻
+	int mCount;             //カウンタ
+	float mFps;             //fps
+	static const int N = 60;//平均を取るサンプル数
+	static const int FPS = 30;	//設定したFPS
+
+public:
+	Fps() {
+		mStartTime = 0;
+		mCount = 0;
+		mFps = 0;
+	}
+
+	bool Update() {
+		if (mCount == 0) { //1フレーム目なら時刻を記憶
+			mStartTime = GetNowCount();
+		}
+		if (mCount == N) { //60フレーム目なら平均を計算する
+			int t = GetNowCount();
+			mFps = 1000.f / ((t - mStartTime) / (float)N);
+			mCount = 0;
+			mStartTime = t;
+		}
+		mCount++;
+		return true;
+	}
+
+	void Draw() {
+		DrawFormatString(0, 0, GetColor(255, 255, 255), "%.1f", mFps);
+	}
+
+	void Wait() {
+		int tookTime = GetNowCount() - mStartTime;	//かかった時間
+		int waitTime = mCount * 1000 / FPS - tookTime;	//待つべき時間
+		if (waitTime > 0) {
+			Sleep(waitTime);	//待機
+		}
+	}
+};
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #pragma region Values
+	Fps fps;
 	FILE *fp;
 	CTime theTime;
 	CFileTime tstart, tend;
 	CFileTime tstart2, tend2; // てすと用
 	CFileTimeSpan ctimep;
-	string imgroot = "cont512_trn001/";
+	string imgroot = "samples/";
 	vector<std::string> filenames;
 
 	unsigned int blankimg;
@@ -45,10 +89,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// 単位はフレーム (60Hzを想定)
 	unsigned int patchSize = 100;
 	unsigned int isif = 0;
-	unsigned int durf = 2;
+	unsigned int durf = 1;
 	unsigned int endf = 300;
 	unsigned int Count = 0;
-	unsigned int triNum = 3;
+	unsigned int triNum = 32;
 	int SizeX = 1920;
 	int SizeY = 1080;
 	bool WindowMode = false;
@@ -67,7 +111,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma region Log-writing
 	// Log file
 	std::ofstream wf;
-	wf.open("ShowLog.txt");
+	wf.open("ShowLog  .txt");
 	wf << "Images: " << imgroot << endl;
 
 	// 現在時刻
@@ -88,7 +132,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region  Buffering-Images
 	//Get file name 
-	filenames = (get_file_path_in_dir(imgroot, "png"));
+	filenames = (get_file_path_in_dir(imgroot, "bmp"));
 	int textc = GetColor(0, 0, 0);
 	for (size_t i = 0; i < filenames.size(); i++)
 	{
@@ -141,16 +185,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	
 	//速度実験用
+	ClearDrawScreen();
+
 	for (size_t i = 0; i < 60; i++) {
-		ClearDrawScreen();
 		DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
 		ScreenFlip();
+		ClearDrawScreen();
 	}
+
 #pragma region Stimulus-loop
 
 	for (size_t j = 0; j < triNum; j++) {
 		// FPS測定用関数
-		//auto startTime = std::chrono::system_clock::now();
+		auto startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
 
 		// 描画開始
@@ -158,14 +205,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ctimep = tstart - tstart;
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
+			// デバック
+			printfDx("%d/%d", j, triNum);
+			// DrawFormatString(0, 0, textc, "%d / %d : images", i, filenames.size()); //TODO TEST
 			patch = 255;
-			//printfDx("%f", 1000000./ctimep.GetTimeSpan());
 			tstart2 = CFileTime::GetCurrentTime(); ;
 
-			//GetMousePoint(&Xbuf, &Ybuf);
-			//DrawFormatString(0, 0, textc, "%d / %d : images", i, filenames.size()); //TODO TEST
 			if (isif != 0) {
-				DrawBox(0, 0, patchSize, patchSize, GetColor(0, 0, 0), TRUE);
+				DrawBox(0, 540, patchSize, 540 + patchSize, GetColor(0, 0, 0), TRUE);
 				while (!ScreenFlip()) {
 					Count++;
 					if (Count >= isif) {
@@ -178,7 +225,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				patch = 255+i%2;
 			}
 			DrawGraph(960-256, 600-256, Handles[i], FALSE);
-			DrawBox(0, 0, patchSize, patchSize, GetColor(patch, patch, patch), TRUE);
+			DrawBox(0, 540, patchSize, 540+patchSize, GetColor(patch, patch, patch), TRUE);
+			//fps.Update();	//更新
+			//fps.Draw();
 			//DrawRotaGraph(Xbuf % 1920, Ybuf % 1080, 1, 0 * i % 360 * PI / 180, Handles[i], FALSE);
 			while (!ScreenFlip()) {
 				Count++;
@@ -188,7 +237,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				}
 				//wf << Count;
 			}
-			ClearDrawScreen();
+
 			tend2 = CFileTime::GetCurrentTime();
 			ctimep = tend2 - tstart2;
 			frameinterval[i] = ctimep.GetTimeSpan();
@@ -200,6 +249,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				DxLib_End();   // DXライブラリ終了処理
 				return -1;
 			}
+			//fps.Wait();		//待機
+			ClearDrawScreen();
+			clsDx();
 		}
 
 	
@@ -208,10 +260,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		const auto endTime = std::chrono::system_clock::now();
 		tend = CFileTime::GetCurrentTime(); ;
 		ctimep = tend - tstart;
-//		auto timeSpan = endTime - startTime;
+		auto timeSpan = endTime - startTime;
 		wf << filenames.size() << " [frames], ";
 		wf << ctimep.GetTimeSpan() / 10000.0 << " [ms (ctime)], "; //[ms]
-		//wf << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << " [ms (chrono)], " ;
+		wf << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << " [ms (chrono)], " ;
 		wf << float(1000.0*filenames.size()) / (ctimep.GetTimeSpan() / 10000.0) << " [FPS]" << endl;
 		//wf << float(filenames.size()) / float(std:chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count()) << endl;
 		Beep(440*1000, 100);
