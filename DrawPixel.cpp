@@ -10,6 +10,7 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 
 #define PI 3.141592654
 
@@ -58,6 +59,7 @@ public:
 	}
 };
 
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #pragma region Values
 	Fps fps;
@@ -66,11 +68,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	CFileTime tstart, tend;
 	CFileTime tstart2, tend2; // てすと用
 	CFileTimeSpan ctimep;
-	string imgroot = "samples/";
+	string imgroot = "images/";
 	vector<std::string> filenames;
+	vector<std::string> act_filenames;
 
 	unsigned int blankimg;
 	unsigned int Handles[2048 * 16];     // データハンドル格納
+	unsigned int sOrder[2048 * 16];     // データハンドル格納
+
 	unsigned int Key = 0;
 	unsigned char *Data;
 	unsigned char *StrBuffer;
@@ -82,17 +87,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	int Xbuf, Ybuf;
 	bool bRAM_Fullbuffer = false;
 	char filename[256];
-	std::string ConfFile = "samples/";
+	std::string ConfFile = "images/";
 	LONGLONG *frameinterval;
 	frameinterval = (long long *)calloc(sizeof(long long), 10000);
 
 	// 単位はフレーム (60Hzを想定)
-	unsigned int patchSize = 100;
+	unsigned int patchSize = 64;
 	unsigned int isif = 0;
-	unsigned int durf = 1;
+	unsigned int durf = 4;
 	unsigned int endf = 300;
+	unsigned int sFrames = 300;
 	unsigned int Count = 0;
-	unsigned int triNum = 32;
+	unsigned int triNum = 5;
 	int SizeX = 1920;
 	int SizeY = 1080;
 	bool WindowMode = false;
@@ -111,7 +117,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma region Log-writing
 	// Log file
 	std::ofstream wf;
-	wf.open("ShowLog  .txt");
+	wf.open("ShowLog.txt");
 	wf << "Images: " << imgroot << endl;
 
 	// 現在時刻
@@ -134,6 +140,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Get file name 
 	filenames = (get_file_path_in_dir(imgroot, "bmp"));
 	int textc = GetColor(0, 0, 0);
+	int ary[ 2048 ]; // TODO
+	// Shuffle
+
+
 	for (size_t i = 0; i < filenames.size(); i++)
 	{
 		//2GB 以上はバッファできない (32bit)
@@ -163,6 +173,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 	}
+
+
+
+
 #pragma endregion
 
 	// Blank
@@ -187,8 +201,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//速度実験用
 	ClearDrawScreen();
 
-	for (size_t i = 0; i < 60; i++) {
-		DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
+	for (size_t i = 0; i < sFrames; i++) {
+		//DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
 		ScreenFlip();
 		ClearDrawScreen();
 	}
@@ -196,6 +210,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma region Stimulus-loop
 
 	for (size_t j = 0; j < triNum; j++) {
+		srand(j);
+		act_filenames = filenames;
+		for (int i = 0; i < filenames.size(); i++)
+		{
+			sOrder[i] = i;
+		}
+		for (int i = 0; i < filenames.size(); i++)
+		{
+			int r = rand() % filenames.size();
+			int t = sOrder[i];
+			sOrder[i] = sOrder[r];
+			sOrder[r] = t;
+		}
+		for (int i = 0; i < filenames.size(); i++)
+		{
+			act_filenames[i] = filenames[sOrder[i]];
+			Handles[i] = Handles[sOrder[i]];
+		}
+
+
 		// FPS測定用関数
 		auto startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
@@ -206,13 +240,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
 			// デバック
-			printfDx("%d/%d", j, triNum);
-			// DrawFormatString(0, 0, textc, "%d / %d : images", i, filenames.size()); //TODO TEST
+			//printfDx("%d/%d: act_filename: %s", j+1, triNum, act_filenames[i].c_str());
+			//DrawFormatString(0, 10, textc, "%s", filenames[i].c_str()); //TODO TEST
 			patch = 255;
 			tstart2 = CFileTime::GetCurrentTime(); ;
 
 			if (isif != 0) {
-				DrawBox(0, 540, patchSize, 540 + patchSize, GetColor(0, 0, 0), TRUE);
+				DrawBox(0, 0, patchSize, patchSize, GetColor(0, 0, 0), TRUE);
 				while (!ScreenFlip()) {
 					Count++;
 					if (Count >= isif) {
@@ -224,11 +258,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			else {
 				patch = 255+i%2;
 			}
-			DrawGraph(960-256, 600-256, Handles[i], FALSE);
-			DrawBox(0, 540, patchSize, 540+patchSize, GetColor(patch, patch, patch), TRUE);
+			//DrawGraph(960-256, 600-256, Handles[i], FALSE);
+			DrawBox(0, 0, patchSize, patchSize, GetColor(patch, patch, patch), TRUE);
 			//fps.Update();	//更新
 			//fps.Draw();
-			//DrawRotaGraph(Xbuf % 1920, Ybuf % 1080, 1, 0 * i % 360 * PI / 180, Handles[i], FALSE);
+			DrawRotaGraph(SizeX/2, SizeY / 2, 1, 0, Handles[i], FALSE);
 			while (!ScreenFlip()) {
 				Count++;
 				if (Count == durf) {
@@ -253,7 +287,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			ClearDrawScreen();
 			clsDx();
 		}
-
+		for (size_t i = 0; i < filenames.size(); i++)
+		{
+			 wf << act_filenames[i].c_str() << endl;
+		}
 	
 		i = 0;
 		// FPS算出 & 記録
@@ -270,9 +307,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 #pragma endregion
-	
-	
-	
 	// 最後にendframe分だけまつ
 	Count = 0;
 	while (!ScreenFlip() && !ProcessMessage() && !ClearDrawScreen()) {
