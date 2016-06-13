@@ -94,9 +94,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// 単位はフレーム (60Hzを想定)
 	unsigned int patchSize = 64;
 	unsigned int isif = 0;
-	unsigned int durf = 4;
-	unsigned int endf = 300;
-	unsigned int sFrames = 300;
+	unsigned int durf = 6;
+	unsigned int endf = 120;
+	unsigned int sFrames = 120;
 	unsigned int Count = 0;
 	unsigned int triNum = 5;
 	int SizeX = 1920;
@@ -143,7 +143,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	int ary[ 2048 ]; // TODO
 	// Shuffle
 
-
 	for (size_t i = 0; i < filenames.size(); i++)
 	{
 		//2GB 以上はバッファできない (32bit)
@@ -181,7 +180,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// Blank
 	ClearDrawScreen();
-	blankimg = LoadGraph("blank.bmp");
 	DrawFormatString(0, 0, textc, "READY: %d images, ", filenames.size());
 	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str(), filenames.size());
 	DrawFormatString(0, 30, textc, ("Images from: " + imgroot).c_str(), filenames.size());
@@ -198,14 +196,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			break;
 	}
 	
-	//速度実験用
-	ClearDrawScreen();
-
-	for (size_t i = 0; i < sFrames; i++) {
-		//DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
-		ScreenFlip();
-		ClearDrawScreen();
-	}
 
 #pragma region Stimulus-loop
 
@@ -227,6 +217,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			act_filenames[i] = filenames[sOrder[i]];
 			Handles[i] = Handles[sOrder[i]];
+		}
+		ClearDrawScreen();
+		for (size_t i = 0; i < sFrames; i++) {
+			//DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
+			ScreenFlip();
+			ClearDrawScreen();
 		}
 
 
