@@ -92,13 +92,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	frameinterval = (long long *)calloc(sizeof(long long), 10000);
 
 	// 単位はフレーム (60Hzを想定)
-	unsigned int patchSize = 64;
-	unsigned int isif = 0;
-	unsigned int durf = 6;
+	unsigned int patchSize = 100;
+	unsigned int isif = 15;
+	unsigned int durf = 15;
 	unsigned int endf = 120;
 	unsigned int sFrames = 120;
 	unsigned int Count = 0;
-	unsigned int triNum = 5;
+	unsigned int triNum = 1;
 	int SizeX = 1920;
 	int SizeY = 1080;
 	bool WindowMode = false;
@@ -106,7 +106,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region Config-file
 	// 設定ファイルの読み込み
-	getFileName(filename, sizeof(filename), NULL);
+	//getFileName(filename, sizeof(filename), NULL);
 	if (!(filename == ConfFile))
 	{
 		ConfFile = filename;
@@ -132,6 +132,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetBackgroundColor(128, 128, 128); // TODO, 輝度ファイルから読めるようにする
 	if (DxLib_Init())
 		return -1;   // DXライブラリ初期化処理
+
 	ScreenFlip();
 #pragma endregion
 
@@ -139,6 +140,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma region  Buffering-Images
 	//Get file name 
 	filenames = (get_file_path_in_dir(imgroot, "bmp"));
+
+	if (filenames.size() == 0)
+		return -1;
+
 	int textc = GetColor(0, 0, 0);
 	int ary[ 2048 ]; // TODO
 	// Shuffle
@@ -242,7 +247,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			tstart2 = CFileTime::GetCurrentTime(); ;
 
 			if (isif != 0) {
-				DrawBox(0, 0, patchSize, patchSize, GetColor(0, 0, 0), TRUE);
+				DrawBox(0, 0+SizeY - patchSize, patchSize, SizeY, GetColor(0, 0, 0), TRUE);
 				while (!ScreenFlip()) {
 					Count++;
 					if (Count >= isif) {
@@ -255,7 +260,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				patch = 255+i%2;
 			}
 			//DrawGraph(960-256, 600-256, Handles[i], FALSE);
-			DrawBox(0, 0, patchSize, patchSize, GetColor(patch, patch, patch), TRUE);
+			DrawBox(0, 0 + SizeY-patchSize, patchSize, SizeY, GetColor(patch, patch, patch), TRUE);
 			//fps.Update();	//更新
 			//fps.Draw();
 			DrawRotaGraph(SizeX/2, SizeY / 2, 1, 0, Handles[i], FALSE);
