@@ -12,11 +12,12 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "visSet.h"
+
 #define PI 3.141592654
 
 using namespace std;
 std::vector<std::string> get_file_path_in_dir(const std::string& dir_name, const std::string& extension);
-int getFileName(char* fileName, int fileNameLength, const char* fileFilter);
 //class Fps;
 class Fps {
 	int mStartTime;         //測定開始時刻
@@ -59,9 +60,11 @@ public:
 	}
 };
 
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #pragma region Values
+
+	visSet vs;
+
 	Fps fps;
 	FILE *fp;
 	CTime theTime;
@@ -106,7 +109,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region Config-file
 	// 設定ファイルの読み込み
-	//getFileName(filename, sizeof(filename), NULL);
+	vs.getInitFileName(filename, sizeof(filename), NULL);
 	if (!(filename == ConfFile))
 	{
 		ConfFile = filename;
@@ -337,7 +340,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma endregion
 }
 
-
 // 画像ファイル一覧取得
 std::vector<std::string> get_file_path_in_dir(const std::string& dir_name, const std::string& extension) noexcept(false)
 {
@@ -368,20 +370,4 @@ std::vector<std::string> get_file_path_in_dir(const std::string& dir_name, const
 	return file_names;
 }
 
-// Filename from windows File-Dialog 
-int getFileName(char* fileName, int fileNameLength, const char* fileFilter)
-{
-	OPENFILENAME ofn;
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = GetMainWindowHandle();
-	ofn.lpstrFilter = fileFilter;
-	ofn.nFilterIndex = 0;
-	ofn.lpstrFile = fileName;
-	ofn.nMaxFile = fileNameLength;
-	ofn.Flags = OFN_CREATEPROMPT | OFN_HIDEREADONLY | OFN_NOCHANGEDIR;
-	if (fileName == NULL)return 0;
-	if (fileFilter == NULL)ofn.lpstrFilter = "すべてのファイル(*.*)\0*.*\0\0";
-	fileName[0] = 0;
-	return GetOpenFileName(&ofn);
-}
+
