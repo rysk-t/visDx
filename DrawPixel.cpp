@@ -40,8 +40,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	errno_t error;
 	int Xbuf, Ybuf;
 	bool bRAM_Fullbuffer = false;
-	char filename[256];
-	std::string ConfFile = "images/";
+	char cfile[256];
+	std::string ConfFile = cfile;
 	LONGLONG *frameinterval;
 	frameinterval = (long long *)calloc(sizeof(long long), 10000);
 
@@ -56,15 +56,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	int SizeX = 1920;
 	int SizeY = 1080;
 	bool WindowMode = false;
+	visSet::setting vSetVals;
 
 # pragma endregion
 
 #pragma region Config-file
 	// Ý’èƒtƒ@ƒCƒ‹‚Ì“Ç‚Ýž‚Ý
-	vs.getInitFileName(filename, sizeof(filename), NULL);
-	vs.loadIni(vs.dataset, filename);
+	vs.getInitFileName(cfile, sizeof(cfile), NULL); ConfFile = cfile;
+	vs.loadIni(&vSetVals, cfile);
 	//std::string debugmode = vs.dataset->imgroot;
-	imgroot = imgroot;
+	imgroot = vSetVals.imgroot;
 #pragma endregion
 
 #pragma region Log-writing
@@ -88,7 +89,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region  Buffering-Images
 	//Get file name 
-	filenames = vs.getImgFiles(imgroot, "bmp");
+	filenames = vs.getImgFiles(imgroot+"\\", "bmp");
 	if (filenames.size() == 0)
 		return -1;
 
@@ -135,7 +136,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ClearDrawScreen();
 	DrawFormatString(0, 0, textc, "READY: %d images, ", filenames.size());
 	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str());
-	DrawFormatString(0, 30, textc, ("Images from: "));
+	DrawFormatString(0, 30, textc, ("Images from: "+ imgroot).c_str());
 	//DrawFormatString(0, 45, textc, (dataset->dbg_imgname));
 	ScreenFlip();
 

@@ -65,22 +65,22 @@ void visSet::SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsyn
 
 
 
-int visSet::loadIni(SETTING *myset, char *fileName)
+int visSet::loadIni(struct setting* myset, char *fileName)
 {
 	boost::property_tree::ptree pt;
-	read_ini(".\\Default.ini", pt);
-	dataset = new SETTING;
+	read_ini(fileName, pt);
+	//read_ini(".\\Default.ini", pt);
+
 
 	//[Display]
-	myset->sizeX;
-	printf("%d", (pt.get_optional<int>("Display.sizeX")).get());
+	myset->model = (pt.get_optional<std::string>("Display.model")).get();
 	myset->sizeX = (pt.get_optional<int>("Display.sizeX")).get();
 	myset->sizeY = (pt.get_optional<int>("Display.sizeY")).get();
 	myset->rate  = (pt.get_optional<int>("Display.rate")).get();
 	
 	//[Stim]
 	myset->interf = (pt.get_optional<int>("Stim.interstim")).get();
-	myset->durf   = (pt.get_optional<int>("Display.duration")).get();
+	myset->durf   = (pt.get_optional<int>("Stim.duration")).get();
 	myset->posX = (pt.get_optional<int>("Stim.posX")).get();
 	myset->posY = (pt.get_optional<int>("Stim.posY")).get();
 	myset->imgroot = (pt.get_optional<std::string>("Stim.imgroot")).get();
@@ -98,7 +98,3 @@ int visSet::loadIni(SETTING *myset, char *fileName)
 	return 1;
 }
 
-int visSet::showSetting(visSet::SETTING *myset)
-{
-	return 0;
-}
