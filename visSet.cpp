@@ -59,7 +59,6 @@ void visSet::SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsyn
 	SetGraphMode(sizex, sizey, bitn);
 	SetBackgroundColor(bg, bg, bg);
 	SetWaitVSyncFlag(vsync);
-
 }
 
 
@@ -71,7 +70,6 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	read_ini(fileName, pt);
 	//read_ini(".\\Default.ini", pt);
 
-
 	//[Display]
 	myset->model = (pt.get_optional<std::string>("Display.model")).get();
 	myset->sizeX = (pt.get_optional<int>("Display.sizeX")).get();
@@ -81,7 +79,8 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 
 	//[Stim]
 	myset->interstim = (pt.get_optional<int>("Stim.interstim")).get();
-	myset->durf   = (pt.get_optional<int>("Stim.duration")).get();
+	myset->duration   = (pt.get_optional<int>("Stim.duration")).get();
+	myset->intertrial = (pt.get_optional<int>("Stim.intertrial")).get();
 	myset->posX = (pt.get_optional<int>("Stim.posX")).get();
 	myset->posY = (pt.get_optional<int>("Stim.posY")).get();
 	myset->imgroot = (pt.get_optional<std::string>("Stim.imgroot")).get();

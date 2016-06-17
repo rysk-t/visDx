@@ -42,13 +42,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	frameinterval = (long long *)calloc(sizeof(long long), 10000);
 
 	// 単位はフレーム (60Hzを想定)
-	unsigned int patchSize = 100;
-	unsigned int isif = 15;
-	unsigned int durf = 15;
 	unsigned int endf = 120;
-	unsigned int sFrames = 120;
 	unsigned int Count = 0;
-	unsigned int triNum = 1;
 
 	bool WindowMode = false;
 	visSet::setting vSetVals;
@@ -112,7 +107,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		
 		// ファイル名だけをバッファするらしいが実行速度に影響しなかった．
 		Handles[i] = LoadGraph((vSetVals.imgroot + filenames[i]).c_str());
-		if (0 == i % 256/4) {
+		if (0 == i % 256) {
 			ClearDrawScreen();
 			DrawFormatString(0, 0, textc, "%d / %d : images, %s", i, filenames.size(), filenames[i]);
 			DrawFormatString(0, 15, textc, ConfFile.c_str(), filenames.size());
@@ -137,6 +132,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	DrawFormatString(0, 0, textc, "READY: %d images, ", filenames.size());
 	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str());
 	DrawFormatString(0, 30, textc, ("Images from: "+ vSetVals.imgroot).c_str());
+	DrawFormatString(0, 45, textc, "Number of iteration: %d", vSetVals.ntrial);
+	DrawFormatString(0, 60, textc, "Estimated Recording Duration: %f [sec]",
+		(1.0 / vSetVals.rate)*vSetVals.ntrial*(
+			filenames.size()*(vSetVals.interstim+vSetVals.duration) + 
+			vSetVals.intertrial));
+
+
 	//DrawFormatString(0, 45, textc, (dataset->dbg_imgname));
 	ScreenFlip();
 
@@ -154,7 +156,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region Stimulus-loop
 
-	for (size_t j = 0; j < triNum; j++) {
+	for (size_t j = 0; j < vSetVals.ntrial; j++) {
 		srand(j);
 		act_filenames = filenames;
 		for (int i = 0; i < filenames.size(); i++)
@@ -174,7 +176,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			Handles[i] = Handles[sOrder[i]];
 		}
 		ClearDrawScreen();
-		for (size_t i = 0; i < sFrames; i++) {
+		for (size_t i = 0; i < vSetVals.intertrial; i++) {
 			//DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
 			ScreenFlip();
 			ClearDrawScreen();
@@ -191,19 +193,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
 			// デバック
-			//printfDx("%d/%d: act_filename: %s", j+1, triNum, act_filenames[i].c_str());
+			//printfDx("%d/%d: act_filename: %s", j+1, vSetVals.ntrial, act_filenames[i].c_str());
 			//DrawFormatString(0, 10, textc, "%s", filenames[i].c_str()); //TODO TEST
 			patch = 255;
 			tstart2 = CFileTime::GetCurrentTime(); ;
 
-			if (isif != 0) {
+			if (vSetVals.interstim != 0) {
 				DrawBox(vSetVals.patch_X, vSetVals.patch_Y, 
 					vSetVals.patch_X+vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 					GetColor(0, 0, 0), TRUE);
 
 				while (!ScreenFlip()) {
 					Count++;
-					if (Count >= isif) {
+					if (Count >= vSetVals.interstim) {
 						Count = 0;
 						break;
 					}
@@ -221,7 +223,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			DrawRotaGraph(vSetVals.sizeX/2, vSetVals.sizeY / 2, 1, 0, Handles[i], FALSE);
 			while (!ScreenFlip()) {
 				Count++;
-				if (Count == durf) {
+				if (Count == vSetVals.duration) {
 					Count = 0;
 					break;
 				}
@@ -241,13 +243,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 			//fps.Wait();		//待機
 			ClearDrawScreen();
-			clsDx();
 		}
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
 			 wf << act_filenames[i].c_str() << endl;
 		}
-	
+		ClearDrawScreen();
 		i = 0;
 		// FPS算出 & 記録
 		const auto endTime = std::chrono::system_clock::now();

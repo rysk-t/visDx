@@ -27,8 +27,9 @@ public:
 		
 		//[Stim]
 		int interstim;
-		int durf;
+		int duration;
 		int ntrial;
+		int intertrial;
 		int posX;
 		int	posY;
 		int bgcolor;
@@ -56,5 +57,6 @@ public:
 	std::vector<std::string> getImgFiles(const std::string& dir_name, const std::string& extension);
 
 	int loadIni(struct setting* myset, char *fileName);
+
 };
 
