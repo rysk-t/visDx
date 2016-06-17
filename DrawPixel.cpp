@@ -1,6 +1,5 @@
 #include "DxLib.h"
 #include "Windows.h"
-#include <vector>
 #include <string>
 #include <stdexcept>
 #include <iostream>
@@ -11,13 +10,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <vector>
 
 #include "visSet.h"
 
 #define PI 3.141592654
 
 using namespace std;
-std::vector<std::string> get_file_path_in_dir(const std::string& dir_name, const std::string& extension);
 //class Fps;
 class Fps {
 	int mStartTime;         //測定開始時刻
@@ -142,7 +141,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region  Buffering-Images
 	//Get file name 
-	filenames = (get_file_path_in_dir(imgroot, "bmp"));
+	filenames = (vs.getImgFiles(imgroot, "bmp"));
 
 	if (filenames.size() == 0)
 		return -1;
@@ -341,33 +340,5 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 }
 
 // 画像ファイル一覧取得
-std::vector<std::string> get_file_path_in_dir(const std::string& dir_name, const std::string& extension) noexcept(false)
-{
-	HANDLE hFind;
-	WIN32_FIND_DATA win32fd;//defined at Windwos.h
-	std::vector<std::string> file_names;
-
-	//拡張子の設定
-	std::string search_name = dir_name + "\\*." + extension;
-
-	hFind = FindFirstFile(search_name.c_str(), &win32fd);
-
-	if (hFind == INVALID_HANDLE_VALUE) {
-		throw std::runtime_error("file not found");
-	}
-
-	do {
-		if (win32fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-		}
-		else {
-			file_names.push_back(win32fd.cFileName);
-			//printf("%s\n", file_names.back().c_str());
-
-		}
-	} while (FindNextFile(hFind, &win32fd));
-
-	FindClose(hFind);
-	return file_names;
-}
 
 
