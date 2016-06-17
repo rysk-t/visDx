@@ -77,14 +77,17 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->sizeX = (pt.get_optional<int>("Display.sizeX")).get();
 	myset->sizeY = (pt.get_optional<int>("Display.sizeY")).get();
 	myset->rate  = (pt.get_optional<int>("Display.rate")).get();
-	
+	myset->nbit  = (pt.get_optional<int>("Display.nbit")).get();
+
 	//[Stim]
-	myset->interf = (pt.get_optional<int>("Stim.interstim")).get();
+	myset->interstim = (pt.get_optional<int>("Stim.interstim")).get();
 	myset->durf   = (pt.get_optional<int>("Stim.duration")).get();
 	myset->posX = (pt.get_optional<int>("Stim.posX")).get();
 	myset->posY = (pt.get_optional<int>("Stim.posY")).get();
 	myset->imgroot = (pt.get_optional<std::string>("Stim.imgroot")).get();
 	myset->ntrial = (pt.get_optional<int>("Stim.ntrial")).get();
+	myset->bgcolor = (pt.get_optional<int>("Stim.bgcolor")).get();
+	
 
 	//[Patch]
 	myset->patch_Exist = (pt.get_optional<int>("Patch.show")).get();
@@ -95,6 +98,7 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	//Debug
 	myset->dbg_values = (pt.get_optional<int>("Debug.values")).get();
 	myset->dbg_imgname = (pt.get_optional<int>("Debug.imgname")).get();
+	myset->dbg_windowmode = (pt.get_optional<int>("Debug.windowmode")).get();
 	return 1;
 }
 

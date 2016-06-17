@@ -23,13 +23,15 @@ public:
 		int sizeX;
 		int sizeY;
 		int rate; //Reflesh Rate of Display
+		int nbit;
 		
 		//[Stim]
-		int interf;
+		int interstim;
 		int durf;
 		int ntrial;
 		int posX;
 		int	posY;
+		int bgcolor;
 		std::string imgroot="samples";
 
 		//[Patch]
@@ -41,7 +43,7 @@ public:
 		//[Debug]
 		bool dbg_values;
 		bool dbg_imgname;
-
+		bool dbg_windowmode;
 	};
 
 

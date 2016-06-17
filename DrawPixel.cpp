@@ -17,28 +17,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma region Values
 
 	visSet vs;
-	FILE *fp;
 	CTime theTime;
 	CFileTime tstart, tend;
 	CFileTime tstart2, tend2; // てすと用
 	CFileTimeSpan ctimep;
-	string imgroot = "images/";
+
 	vector<std::string> filenames;
 	vector<std::string> act_filenames;
 
-	unsigned int blankimg;
 	unsigned int Handles[2048 * 16];     // データハンドル格納
 	unsigned int sOrder[2048 * 16];     // データハンドル格納
 
 	unsigned int Key = 0;
-	unsigned char *Data;
-	unsigned char *StrBuffer;
+	//unsigned char *Data;
+	//unsigned char *StrBuffer;
 
 	int patch = 0;
 	int i = 0;
-	int graphSize;
 	errno_t error;
-	int Xbuf, Ybuf;
 	bool bRAM_Fullbuffer = false;
 	char cfile[256];
 	std::string ConfFile = cfile;
@@ -53,8 +49,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	unsigned int sFrames = 120;
 	unsigned int Count = 0;
 	unsigned int triNum = 1;
-	int SizeX = 1920;
-	int SizeY = 1080;
+
 	bool WindowMode = false;
 	visSet::setting vSetVals;
 
@@ -65,14 +60,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	vs.getInitFileName(cfile, sizeof(cfile), NULL); ConfFile = cfile;
 	vs.loadIni(&vSetVals, cfile);
 	//std::string debugmode = vs.dataset->imgroot;
-	imgroot = vSetVals.imgroot;
+//	imgroot = vSetVals.imgroot;
 #pragma endregion
 
 #pragma region Log-writing
 	// Log file
 	std::ofstream wf;
 	wf.open("ShowLog.txt");
-	wf << "Images: " << imgroot << endl;
+	wf << "Images: " << vSetVals.imgroot << endl;
 
 	// 現在時刻
 	theTime = CTime::GetCurrentTime();
@@ -80,7 +75,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma endregion
 
 #pragma region DXlib-initialize
-	vs.SettingScreen(WindowMode, SizeX, SizeY, 32, TRUE, 128);
+	vs.SettingScreen(vSetVals.dbg_windowmode,
+		vSetVals.sizeX,
+		vSetVals.sizeY,
+		vSetVals.nbit,
+		TRUE, // vsync option
+		vSetVals.bgcolor);
+
 	if (DxLib_Init())
 		return -1;   // DXライブラリ初期化処理
 	ScreenFlip();
@@ -89,12 +90,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region  Buffering-Images
 	//Get file name 
-	filenames = vs.getImgFiles(imgroot+"\\", "bmp");
+	filenames = vs.getImgFiles(vSetVals.imgroot +"\\", "bmp");
 	if (filenames.size() == 0)
 		return -1;
 
 	int textc = GetColor(0, 0, 0);
-	int ary[ 2048 ]; // TODO
 	// Shuffle
 
 	for (size_t i = 0; i < filenames.size(); i++)
@@ -111,10 +111,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		free(Data);*/
 		
 		// ファイル名だけをバッファするらしいが実行速度に影響しなかった．
-		Handles[i] = LoadGraph((imgroot + filenames[i]).c_str());
-		if (0 == i % 256) {
+		Handles[i] = LoadGraph((vSetVals.imgroot + filenames[i]).c_str());
+		if (0 == i % 256/4) {
 			ClearDrawScreen();
-			DrawFormatString(0, 0, textc, "%d / %d : images, %s", i, filenames.size());
+			DrawFormatString(0, 0, textc, "%d / %d : images, %s", i, filenames.size(), filenames[i]);
 			DrawFormatString(0, 15, textc, ConfFile.c_str(), filenames.size());
 			ScreenFlip();
 		}
@@ -136,7 +136,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ClearDrawScreen();
 	DrawFormatString(0, 0, textc, "READY: %d images, ", filenames.size());
 	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str());
-	DrawFormatString(0, 30, textc, ("Images from: "+ imgroot).c_str());
+	DrawFormatString(0, 30, textc, ("Images from: "+ vSetVals.imgroot).c_str());
 	//DrawFormatString(0, 45, textc, (dataset->dbg_imgname));
 	ScreenFlip();
 
@@ -197,7 +197,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			tstart2 = CFileTime::GetCurrentTime(); ;
 
 			if (isif != 0) {
-				DrawBox(0, 0+SizeY - patchSize, patchSize, SizeY, GetColor(0, 0, 0), TRUE);
+				DrawBox(vSetVals.patch_X, vSetVals.patch_Y, 
+					vSetVals.patch_X+vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
+					GetColor(0, 0, 0), TRUE);
+
 				while (!ScreenFlip()) {
 					Count++;
 					if (Count >= isif) {
@@ -210,10 +213,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				patch = 255+i%2;
 			}
 			//DrawGraph(960-256, 600-256, Handles[i], FALSE);
-			DrawBox(0, 0 + SizeY-patchSize, patchSize, SizeY, GetColor(patch, patch, patch), TRUE);
+			DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
+				vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
+				GetColor(patch, patch, patch), TRUE);
 			//fps.Update();	//更新
 			//fps.Draw();
-			DrawRotaGraph(SizeX/2, SizeY / 2, 1, 0, Handles[i], FALSE);
+			DrawRotaGraph(vSetVals.sizeX/2, vSetVals.sizeY / 2, 1, 0, Handles[i], FALSE);
 			while (!ScreenFlip()) {
 				Count++;
 				if (Count == durf) {
