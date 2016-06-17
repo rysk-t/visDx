@@ -7,7 +7,8 @@
 #include <malloc.h>
 #include <math.h>
 #include "visSet.h"
-
+#include <random>
+#include <algorithm>
 #define PI 3.141592654
 
 using namespace std;
@@ -155,26 +156,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	
 
 #pragma region Stimulus-loop
+	vector<std::int16_t> fileidx(filenames.size());
+	std::random_device rnd;
+	std::mt19937 mt(rnd());
 
 	for (size_t j = 0; j < vSetVals.ntrial; j++) {
 		srand(j);
 		act_filenames = filenames;
+		for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
+		std::random_shuffle(fileidx.begin(), fileidx.end());
+
 		for (int i = 0; i < filenames.size(); i++)
 		{
-			sOrder[i] = i;
+			act_filenames[i] = filenames[fileidx[i]];
+			//Handles[i] = Handles[fileidx[i]];
 		}
-		for (int i = 0; i < filenames.size(); i++)
-		{
-			int r = rand() % filenames.size();
-			int t = sOrder[i];
-			sOrder[i] = sOrder[r];
-			sOrder[r] = t;
-		}
-		for (int i = 0; i < filenames.size(); i++)
-		{
-			act_filenames[i] = filenames[sOrder[i]];
-			Handles[i] = Handles[sOrder[i]];
-		}
+
+
 		ClearDrawScreen();
 		for (size_t i = 0; i < vSetVals.intertrial; i++) {
 			//DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
@@ -192,6 +190,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ctimep = tstart - tstart;
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
+			printfDx("%d", fileidx[i]);
 			// デバック
 			//printfDx("%d/%d: act_filename: %s", j+1, vSetVals.ntrial, act_filenames[i].c_str());
 			//DrawFormatString(0, 10, textc, "%s", filenames[i].c_str()); //TODO TEST
@@ -220,7 +219,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				GetColor(patch, patch, patch), TRUE);
 			//fps.Update();	//更新
 			//fps.Draw();
-			DrawRotaGraph(vSetVals.sizeX/2, vSetVals.sizeY / 2, 1, 0, Handles[i], FALSE);
+			DrawRotaGraph(vSetVals.sizeX/2, vSetVals.sizeY / 2, 1, 0, Handles[fileidx[i]], FALSE);
 			while (!ScreenFlip()) {
 				Count++;
 				if (Count == vSetVals.duration) {
@@ -243,6 +242,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 			//fps.Wait();		//待機
 			ClearDrawScreen();
+			clsDx();
 		}
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
