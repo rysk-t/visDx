@@ -1,5 +1,3 @@
-#include "DxLib.h"
-#include "Windows.h"
 #include <string>
 #include <stdexcept>
 #include <iostream>
@@ -7,64 +5,18 @@
 #include <atltime.h>
 #include <chrono>
 #include <malloc.h>
-#include <stdio.h>
 #include <math.h>
-#include <stdlib.h>
-#include <vector>
-
 #include "visSet.h"
 
 #define PI 3.141592654
 
 using namespace std;
 //class Fps;
-class Fps {
-	int mStartTime;         //測定開始時刻
-	int mCount;             //カウンタ
-	float mFps;             //fps
-	static const int N = 60;//平均を取るサンプル数
-	static const int FPS = 30;	//設定したFPS
-
-public:
-	Fps() {
-		mStartTime = 0;
-		mCount = 0;
-		mFps = 0;
-	}
-
-	bool Update() {
-		if (mCount == 0) { //1フレーム目なら時刻を記憶
-			mStartTime = GetNowCount();
-		}
-		if (mCount == N) { //60フレーム目なら平均を計算する
-			int t = GetNowCount();
-			mFps = 1000.f / ((t - mStartTime) / (float)N);
-			mCount = 0;
-			mStartTime = t;
-		}
-		mCount++;
-		return true;
-	}
-
-	void Draw() {
-		DrawFormatString(0, 0, GetColor(255, 255, 255), "%.1f", mFps);
-	}
-
-	void Wait() {
-		int tookTime = GetNowCount() - mStartTime;	//かかった時間
-		int waitTime = mCount * 1000 / FPS - tookTime;	//待つべき時間
-		if (waitTime > 0) {
-			Sleep(waitTime);	//待機
-		}
-	}
-};
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #pragma region Values
 
 	visSet vs;
-
-	Fps fps;
 	FILE *fp;
 	CTime theTime;
 	CFileTime tstart, tend;
@@ -104,16 +56,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	int SizeX = 1920;
 	int SizeY = 1080;
 	bool WindowMode = false;
+
 # pragma endregion
 
 #pragma region Config-file
 	// 設定ファイルの読み込み
 	vs.getInitFileName(filename, sizeof(filename), NULL);
-	if (!(filename == ConfFile))
-	{
-		ConfFile = filename;
-	}
-
+	vs.loadIni(vs.dataset, filename);
+	//std::string debugmode = vs.dataset->imgroot;
+	imgroot = imgroot;
 #pragma endregion
 
 #pragma region Log-writing
@@ -128,21 +79,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma endregion
 
 #pragma region DXlib-initialize
-	SetWaitVSyncFlag(TRUE);
-	ChangeWindowMode(WindowMode); // ウィンドウモードに設定
-	SetGraphMode(SizeX, SizeY, 32);
-	SetBackgroundColor(128, 128, 128); // TODO, 輝度ファイルから読めるようにする
+	vs.SettingScreen(WindowMode, SizeX, SizeY, 32, TRUE, 128);
 	if (DxLib_Init())
 		return -1;   // DXライブラリ初期化処理
-
 	ScreenFlip();
 #pragma endregion
 
 
 #pragma region  Buffering-Images
 	//Get file name 
-	filenames = (vs.getImgFiles(imgroot, "bmp"));
-
+	filenames = vs.getImgFiles(imgroot, "bmp");
 	if (filenames.size() == 0)
 		return -1;
 
@@ -167,7 +113,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		Handles[i] = LoadGraph((imgroot + filenames[i]).c_str());
 		if (0 == i % 256) {
 			ClearDrawScreen();
-			DrawFormatString(0, 0, textc, "%d / %d : images", i, filenames.size());
+			DrawFormatString(0, 0, textc, "%d / %d : images, %s", i, filenames.size());
 			DrawFormatString(0, 15, textc, ConfFile.c_str(), filenames.size());
 			ScreenFlip();
 		}
@@ -188,8 +134,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Blank
 	ClearDrawScreen();
 	DrawFormatString(0, 0, textc, "READY: %d images, ", filenames.size());
-	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str(), filenames.size());
-	DrawFormatString(0, 30, textc, ("Images from: " + imgroot).c_str(), filenames.size());
+	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str());
+	DrawFormatString(0, 30, textc, ("Images from: "));
+	//DrawFormatString(0, 45, textc, (dataset->dbg_imgname));
 	ScreenFlip();
 
 	while (ProcessMessage() == 0)
