@@ -197,29 +197,39 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			patch = 255;
 			tstart2 = CFileTime::GetCurrentTime(); ;
 
-			if (vSetVals.interstim != 0) {
-				DrawBox(vSetVals.patch_X, vSetVals.patch_Y, 
-					vSetVals.patch_X+vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
-					GetColor(0, 0, 0), TRUE);
 
-				while (!ScreenFlip()) {
-					Count++;
-					if (Count >= vSetVals.interstim) {
-						Count = 0;
-						break;
+			// patch Exist?
+			switch (vSetVals.patch_Exist)
+			{
+			case 0:
+				break;
+			case 1:
+				if (vSetVals.interstim != 0) {
+					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
+						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
+						GetColor(0, 0, 0), TRUE);
+
+					while (!ScreenFlip()) {
+						Count++;
+						if (Count >= vSetVals.interstim) {
+							Count = 0;
+							break;
+						}
 					}
 				}
+				else {
+					patch = 255 + i % 2;
+				}
+				DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
+					vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
+					GetColor(patch, patch, patch), TRUE);
 			}
-			else {
-				patch = 255+i%2;
-			}
-			//DrawGraph(960-256, 600-256, Handles[i], FALSE);
-			DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
-				vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
-				GetColor(patch, patch, patch), TRUE);
+
+
+
 			//fps.Update();	//çXêV
 			//fps.Draw();
-			DrawRotaGraph(vSetVals.sizeX/2, vSetVals.sizeY / 2, 1, 0, Handles[fileidx[i]], FALSE);
+			DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 			while (!ScreenFlip()) {
 				Count++;
 				if (Count == vSetVals.duration) {
