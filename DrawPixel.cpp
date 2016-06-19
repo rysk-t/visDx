@@ -53,7 +53,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region Config-file
 	// 設定ファイルの読み込み
-	vs.getInitFileName(cfile, sizeof(cfile), NULL); ConfFile = cfile;
+	if (!vs.getInitFileName(cfile, sizeof(cfile), NULL))
+		return -1;
+	ConfFile = cfile;
 	vs.loadIni(&vSetVals, cfile);
 	//std::string debugmode = vs.dataset->imgroot;
 //	imgroot = vSetVals.imgroot;
@@ -86,11 +88,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region  Buffering-Images
 	//Get file name 
-	filenames = vs.getImgFiles(vSetVals.imgroot +"\\", "bmp");
+	filenames = vs.getImgFiles(vSetVals.imgroot +"\\", vSetVals.imgext);
 	if (filenames.size() == 0)
 		return -1;
 
-	int textc = GetColor(0, 0, 0);
+	int textc = GetColor(255, 0, 0);
 	// Shuffle
 
 	for (size_t i = 0; i < filenames.size(); i++)
@@ -161,17 +163,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::mt19937 mt(rnd());
 
 	for (size_t j = 0; j < vSetVals.ntrial; j++) {
-		srand(j);
 		act_filenames = filenames;
-		for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
-		std::random_shuffle(fileidx.begin(), fileidx.end());
+
+		if (vSetVals.shuffle)
+		{
+			srand(j);
+			for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
+			std::random_shuffle(fileidx.begin(), fileidx.end());
+		}
+		else
+		{
+			for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
+		}
+
 
 		for (int i = 0; i < filenames.size(); i++)
 		{
 			act_filenames[i] = filenames[fileidx[i]];
-			//Handles[i] = Handles[fileidx[i]];
 		}
-
 
 		ClearDrawScreen();
 		for (size_t i = 0; i < vSetVals.intertrial; i++) {
@@ -190,7 +199,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ctimep = tstart - tstart;
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
-			printfDx("%d", fileidx[i]);
+			//printfDx("%d", fileidx[i]);
 			// デバック
 			//printfDx("%d/%d: act_filename: %s", j+1, vSetVals.ntrial, act_filenames[i].c_str());
 			//DrawFormatString(0, 10, textc, "%s", filenames[i].c_str()); //TODO TEST

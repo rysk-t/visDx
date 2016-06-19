@@ -78,12 +78,14 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->nbit  = (pt.get_optional<int>("Display.nbit")).get();
 
 	//[Stim]
+	myset->shuffle = (pt.get_optional<int>("Stim.shuffle")).get();
 	myset->interstim = (pt.get_optional<int>("Stim.interstim")).get();
 	myset->duration   = (pt.get_optional<int>("Stim.duration")).get();
 	myset->intertrial = (pt.get_optional<int>("Stim.intertrial")).get();
 	myset->posX = (pt.get_optional<int>("Stim.posX")).get();
 	myset->posY = (pt.get_optional<int>("Stim.posY")).get();
 	myset->imgroot = (pt.get_optional<std::string>("Stim.imgroot")).get();
+	myset->imgext = (pt.get_optional<std::string>("Stim.imgext")).get();
 	myset->ntrial = (pt.get_optional<int>("Stim.ntrial")).get();
 	myset->bgcolor = (pt.get_optional<int>("Stim.bgcolor")).get();
 	

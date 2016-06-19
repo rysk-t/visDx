@@ -26,6 +26,7 @@ public:
 		int nbit;
 		
 		//[Stim]
+		bool shuffle;
 		int interstim;
 		int duration;
 		int ntrial;
@@ -34,6 +35,7 @@ public:
 		int	posY;
 		int bgcolor;
 		std::string imgroot="samples";
+		std::string imgext = "bmp";
 
 		//[Patch]
 		bool patch_Exist; //bool of patch showing
