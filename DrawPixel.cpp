@@ -22,6 +22,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	CFileTime tstart, tend;
 	CFileTime tstart2, tend2; // てすと用
 	CFileTimeSpan ctimep;
+	std::ofstream wf;
 
 	vector<std::string> filenames;
 	vector<std::string> act_filenames;
@@ -41,6 +42,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::string ConfFile = cfile;
 	LONGLONG *frameinterval;
 	frameinterval = (long long *)calloc(sizeof(long long), 10000);
+	auto endTime = std::chrono::system_clock::now();
+
+	//int frameintervalMat[10000][10000];
 
 	// 単位はフレーム (60Hzを想定)
 	unsigned int endf = 120;
@@ -49,27 +53,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	bool WindowMode = false;
 	visSet::setting vSetVals;
 
-# pragma endregion
+	# pragma endregion
 
-#pragma region Config-file
+	#pragma region Config-file
 	// 設定ファイルの読み込み
 	if (!vs.getInitFileName(cfile, sizeof(cfile), NULL))
 		return -1;
 	ConfFile = cfile;
 	vs.loadIni(&vSetVals, cfile);
-	//std::string debugmode = vs.dataset->imgroot;
-//	imgroot = vSetVals.imgroot;
-#pragma endregion
+	#pragma endregion
 
 #pragma region Log-writing
 	// Log file
-	std::ofstream wf;
-	wf.open("ShowLog.txt");
+	theTime = CTime::GetCurrentTime();
+
+	wf.open("ShowLog_" + theTime.Format("%Y%m%d%H%M") + ".txt");
 	wf << "Images: " << vSetVals.imgroot << endl;
 
 	// 現在時刻
-	theTime = CTime::GetCurrentTime();
-	wf << theTime.Format("%Y%d%H%M") << endl;
+	wf << theTime.Format("%Y%m%d%H%M") << endl;
 #pragma endregion
 
 #pragma region DXlib-initialize
@@ -161,13 +163,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	vector<std::int16_t> fileidx(filenames.size());
 	std::random_device rnd;
 	std::mt19937 mt(rnd());
+	auto startTime = std::chrono::system_clock::now();
 
 	for (size_t j = 0; j < vSetVals.ntrial; j++) {
 		act_filenames = filenames;
 
 		if (vSetVals.shuffle)
 		{
-			srand(j);
+			srand(j*100);
 			for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
 			std::random_shuffle(fileidx.begin(), fileidx.end());
 		}
@@ -191,7 +194,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 		// FPS測定用関数
-		auto startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
 
 		// 描画開始
@@ -263,22 +266,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			ClearDrawScreen();
 			clsDx();
 		}
-		for (size_t i = 0; i < filenames.size(); i++)
-		{
-			 wf << act_filenames[i].c_str() << endl;
-		}
-		ClearDrawScreen();
-		i = 0;
 		// FPS算出 & 記録
-		const auto endTime = std::chrono::system_clock::now();
+		endTime = std::chrono::system_clock::now();
 		tend = CFileTime::GetCurrentTime(); ;
 		ctimep = tend - tstart;
 		auto timeSpan = endTime - startTime;
+		wf << "# Trial:" << j+1 << " ";
 		wf << filenames.size() << " [frames], ";
 		wf << ctimep.GetTimeSpan() / 10000.0 << " [ms (ctime)], "; //[ms]
 		wf << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << " [ms (chrono)], " ;
-		wf << float(1000.0*filenames.size()) / (ctimep.GetTimeSpan() / 10000.0) << " [FPS]" << endl;
+		wf << float(1000.0*filenames.size()) / (ctimep.GetTimeSpan() / 10000.0) << " [images/sec]" << endl;
 		//wf << float(filenames.size()) / float(std:chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count()) << endl;
+		for (size_t i = 0; i < filenames.size(); i++)
+		{
+			wf << act_filenames[i].c_str() << ", " << frameinterval[i] << endl;
+		}
 		Beep(440*1000, 100);
 	}
 
@@ -294,12 +296,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 	}
 
-	// デバック用領域
-	for (size_t i = 0; i < filenames.size(); i++)
-	{
-		wf << frameinterval[i] << endl;
-	}
-
+	
 #pragma region Finalize
 	Beep(440 * 1000, 100);
 	Beep(440 * 1000, 100);
