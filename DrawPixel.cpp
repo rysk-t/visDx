@@ -50,7 +50,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	unsigned int endf = 120;
 	unsigned int Count = 0;
 
-	bool WindowMode = false;
+	bool dbg_mode = false;
+
 	visSet::setting vSetVals;
 
 	# pragma endregion
@@ -84,6 +85,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if (DxLib_Init())
 		return -1;   // DXライブラリ初期化処理
+	SetDrawScreen(DX_SCREEN_BACK);
 	ScreenFlip();
 #pragma endregion
 
@@ -134,7 +136,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// Blank
 	ClearDrawScreen();
-	DrawFormatString(0, 0, textc, "READY: %d images, ", filenames.size());
+	DrawFormatString(0, 0, textc, "READY: %d images, PRESS T for start (D for test)", filenames.size());
 	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str());
 	DrawFormatString(0, 30, textc, ("Images from: "+ vSetVals.imgroot).c_str());
 	DrawFormatString(0, 45, textc, "Number of iteration: %d", vSetVals.ntrial);
@@ -155,7 +157,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			return -1;
 		}
 		if (CheckHitKey(KEY_INPUT_T) != 0)
+		{
 			break;
+		}
+		else if (CheckHitKey(KEY_INPUT_D) != 0) 
+		{
+			dbg_mode = true;
+			break;
+		}
+
+
 	}
 	
 
@@ -202,6 +213,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ctimep = tstart - tstart;
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
+			
 			//printfDx("%d", fileidx[i]);
 			// デバック
 			//printfDx("%d/%d: act_filename: %s", j+1, vSetVals.ntrial, act_filenames[i].c_str());
@@ -237,10 +249,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					GetColor(patch, patch, patch), TRUE);
 			}
 
-
-
-			//fps.Update();	//更新
-			//fps.Draw();
 			DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 			while (!ScreenFlip()) {
 				Count++;
@@ -248,7 +256,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					Count = 0;
 					break;
 				}
-				//wf << Count;
 			}
 
 			tend2 = CFileTime::GetCurrentTime();
@@ -281,7 +288,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			wf << act_filenames[i].c_str() << ", " << frameinterval[i] << endl;
 		}
-		Beep(440*1000, 100);
 	}
 
 #pragma endregion
