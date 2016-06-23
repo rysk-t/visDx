@@ -103,3 +103,22 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	return 1;
 }
 
+int visSet::showPatch(int x, int y, int size, unsigned int Colh, int durf, bool fill)
+{
+	Count = 0;
+	DrawBox(x, y, x + size, y + size, Colh, fill);
+	WaitFramesDraw(durf);
+	return 1;
+}
+
+int visSet::WaitFramesDraw(int durf)
+{
+	Count = 0;
+	while (!ScreenFlip()) {
+		Count++;
+		if (Count >= durf) {
+			break;
+		}
+	}
+	return Count;
+}

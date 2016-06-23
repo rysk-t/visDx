@@ -114,7 +114,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		
 		// ファイル名だけをバッファするらしいが実行速度に影響しなかった．
 		Handles[i] = LoadGraph((vSetVals.imgroot + filenames[i]).c_str());
-		if (0 == i % 256) {
+		if (0 == i % 128) {
+			ProcessMessage();
 			ClearDrawScreen();
 			DrawFormatString(0, 0, textc, "%d / %d : images, %s", i, filenames.size(), filenames[i]);
 			DrawFormatString(0, 15, textc, ConfFile.c_str(), filenames.size());
@@ -197,20 +198,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 		ClearDrawScreen();
-		for (size_t i = 0; i < vSetVals.intertrial; i++) {
-			//DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
-			ScreenFlip();
-			ClearDrawScreen();
-		}
-
+		vs.WaitFramesDraw(vSetVals.intertrial);
 
 		// FPS測定用関数
 		startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
-
-		// 描画開始
-		//while (i < filenames.size())
 		ctimep = tstart - tstart;
+
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
 			
@@ -232,31 +226,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						GetColor(0, 0, 0), TRUE);
-
-					while (!ScreenFlip()) {
-						Count++;
-						if (Count >= vSetVals.interstim) {
-							Count = 0;
-							break;
-						}
-					}
-				}
-				else {
+					vs.WaitFramesDraw(vSetVals.interstim);
+				}else{
 					patch = 255 + i % 2;
 				}
 				DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 					vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 					GetColor(patch, patch, patch), TRUE);
+				break;
 			}
 
 			DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
-			while (!ScreenFlip()) {
-				Count++;
-				if (Count == vSetVals.duration) {
-					Count = 0;
-					break;
-				}
-			}
+			vs.WaitFramesDraw(vSetVals.duration);
 
 			tend2 = CFileTime::GetCurrentTime();
 			ctimep = tend2 - tstart2;
@@ -292,25 +273,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma endregion
 	// 最後にendframe分だけまつ
-	Count = 0;
-	while (!ScreenFlip() && !ProcessMessage() && !ClearDrawScreen()) {
-		Count++;
-		if (Count == endf) {
-			//1秒たった時の処理
-			Count = 0;
-			break;
-		}
-	}
-
+	vs.WaitFramesDraw(endf);
 	
-#pragma region Finalize
-	Beep(440 * 1000, 100);
-	Beep(440 * 1000, 100);
 	free(frameinterval);
 	ProcessMessage();
 	ClearDrawScreen();
 	DxLib_End();
 	wf.close();
+	Beep(440 * 1000, 100);
+	Beep(440 * 1000, 100);
 	return 0;
 #pragma endregion
 }

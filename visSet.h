@@ -49,6 +49,7 @@ public:
 		bool dbg_windowmode;
 	};
 
+	int Count = 0;
 
 	visSet();
 	~visSet();
@@ -60,5 +61,8 @@ public:
 
 	int loadIni(struct setting* myset, char *fileName);
 
+	int showPatch(int x, int y, int size, unsigned int Col, int durf, bool fill);
+
+	int WaitFramesDraw(int durf);
 };
 
