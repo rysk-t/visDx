@@ -1,4 +1,3 @@
-#include <string>
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
@@ -22,17 +21,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	CFileTime tstart, tend;
 	CFileTime tstart2, tend2; // てすと用
 	CFileTimeSpan ctimep;
+	std::ofstream wf;
 
 	vector<std::string> filenames;
 	vector<std::string> act_filenames;
 
 	unsigned int Handles[2048 * 16];     // データハンドル格納
 	unsigned int sOrder[2048 * 16];     // データハンドル格納
-
 	unsigned int Key = 0;
-	//unsigned char *Data;
-	//unsigned char *StrBuffer;
-
+	int textc = GetColor(255, 0, 0);
+	int FpsTime[2] = { 0, }, FpsTime_i = 0;
 	int patch = 0;
 	int i = 0;
 	errno_t error;
@@ -41,33 +39,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::string ConfFile = cfile;
 	LONGLONG *frameinterval;
 	frameinterval = (long long *)calloc(sizeof(long long), 10000);
+	auto endTime = std::chrono::system_clock::now();
 
-	// 単位はフレーム (60Hzを想定)
 	unsigned int endf = 120;
 	unsigned int Count = 0;
 
-	bool WindowMode = false;
+	bool dbg_mode = false;
+
 	visSet::setting vSetVals;
 
 # pragma endregion
 
 #pragma region Config-file
 	// 設定ファイルの読み込み
-	vs.getInitFileName(cfile, sizeof(cfile), NULL); ConfFile = cfile;
+	if (!vs.getInitFileName(cfile, sizeof(cfile), NULL))
+		return -1;
+	ConfFile = cfile;
 	vs.loadIni(&vSetVals, cfile);
-	//std::string debugmode = vs.dataset->imgroot;
-//	imgroot = vSetVals.imgroot;
 #pragma endregion
 
 #pragma region Log-writing
 	// Log file
-	std::ofstream wf;
-	wf.open("ShowLog.txt");
+	theTime = CTime::GetCurrentTime();
+	wf.open("ShowLog_" + theTime.Format("%Y%m%d%H%M") + ".txt");
 	wf << "Images: " << vSetVals.imgroot << endl;
 
 	// 現在時刻
-	theTime = CTime::GetCurrentTime();
-	wf << theTime.Format("%Y%d%H%M") << endl;
+	wf << theTime.Format("%Y%m%d%H%M") << endl;
 #pragma endregion
 
 #pragma region DXlib-initialize
@@ -77,20 +75,27 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		vSetVals.nbit,
 		TRUE, // vsync option
 		vSetVals.bgcolor);
-
 	if (DxLib_Init())
 		return -1;   // DXライブラリ初期化処理
+	SetDrawScreen(DX_SCREEN_BACK);
 	ScreenFlip();
 #pragma endregion
 
 
 #pragma region  Buffering-Images
 	//Get file name 
-	filenames = vs.getImgFiles(vSetVals.imgroot +"\\", "bmp");
-	if (filenames.size() == 0)
+	filenames = vs.getImgFiles(vSetVals.imgroot , vSetVals.imgext);
+	if (0==filenames.size())
+	{
 		return -1;
+	}
+	else {
+	DrawFormatString(0, 0, textc, "%d images will be loaded (%s)", filenames.size(), vSetVals.imgext.c_str());
+	DrawFormatString(0, 15, textc, "%s", (vSetVals.imgroot + filenames[0]).c_str());
+	//DrawFormatString(0,15, textc, "(%s file) ", vSetVals.imgext);
+	}
+	ScreenFlip();
 
-	int textc = GetColor(0, 0, 0);
 	// Shuffle
 
 	for (size_t i = 0; i < filenames.size(); i++)
@@ -108,9 +113,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		
 		// ファイル名だけをバッファするらしいが実行速度に影響しなかった．
 		Handles[i] = LoadGraph((vSetVals.imgroot + filenames[i]).c_str());
-		if (0 == i % 256) {
+		if (0 == i % 128) {
+			ProcessMessage();
 			ClearDrawScreen();
-			DrawFormatString(0, 0, textc, "%d / %d : images, %s", i, filenames.size(), filenames[i]);
+			DrawFormatString(0, 0, textc, "%d / %d : images, %s", i, filenames.size(), filenames[i].c_str());
+			ScreenFlip();
 			DrawFormatString(0, 15, textc, ConfFile.c_str(), filenames.size());
 			ScreenFlip();
 		}
@@ -120,17 +127,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			DxLib_End();   // DXライブラリ終了処理
 			return -1;
 		}
-
 	}
-
-
-
 
 #pragma endregion
 
 	// Blank
 	ClearDrawScreen();
-	DrawFormatString(0, 0, textc, "READY: %d images, ", filenames.size());
+	DrawFormatString(0, 0, textc, "READY: %d images (%s), PRESS T for start (D for test)", filenames.size(), vSetVals.imgext.c_str());
 	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str());
 	DrawFormatString(0, 30, textc, ("Images from: "+ vSetVals.imgroot).c_str());
 	DrawFormatString(0, 45, textc, "Number of iteration: %d", vSetVals.ntrial);
@@ -151,7 +154,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			return -1;
 		}
 		if (CheckHitKey(KEY_INPUT_T) != 0)
+		{
 			break;
+		}
+		else if (CheckHitKey(KEY_INPUT_D) != 0) 
+		{
+			dbg_mode = true;
+			break;
+		}
+
+
 	}
 	
 
@@ -159,46 +171,52 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	vector<std::int16_t> fileidx(filenames.size());
 	std::random_device rnd;
 	std::mt19937 mt(rnd());
+	auto startTime = std::chrono::system_clock::now();
 
 	for (size_t j = 0; j < vSetVals.ntrial; j++) {
-		srand(j);
 		act_filenames = filenames;
-		for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
-		std::random_shuffle(fileidx.begin(), fileidx.end());
+
+		if (vSetVals.shuffle)
+		{
+			srand(j*100);
+			for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
+			std::random_shuffle(fileidx.begin(), fileidx.end());
+		}
+		else
+		{
+			for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
+		}
+
 
 		for (int i = 0; i < filenames.size(); i++)
 		{
 			act_filenames[i] = filenames[fileidx[i]];
-			//Handles[i] = Handles[fileidx[i]];
 		}
-
 
 		ClearDrawScreen();
-		for (size_t i = 0; i < vSetVals.intertrial; i++) {
-			//DrawRotaGraph(960, 600, 1, 0 * i % 360 * PI / 180, blankimg, FALSE);
-			ScreenFlip();
-			ClearDrawScreen();
-		}
-
+		vs.WaitFramesDraw(vSetVals.intertrial);
 
 		// FPS測定用関数
-		auto startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
-
-		// 描画開始
-		//while (i < filenames.size())
 		ctimep = tstart - tstart;
+
+
+		unsigned int colHandle[3] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255)};
+
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
-			printfDx("%d", fileidx[i]);
+			
+			//printfDx("%d", fileidx[i]);
 			// デバック
 			//printfDx("%d/%d: act_filename: %s", j+1, vSetVals.ntrial, act_filenames[i].c_str());
 			//DrawFormatString(0, 10, textc, "%s", filenames[i].c_str()); //TODO TEST
 			patch = 255;
 			tstart2 = CFileTime::GetCurrentTime(); ;
 
-
 			// patch Exist?
+			vs.showDebugInfo(dbg_mode, colHandle[2], filenames[fileidx[i]], frameinterval[i-1], i, filenames.size());
+
 			switch (vSetVals.patch_Exist)
 			{
 			case 0:
@@ -207,37 +225,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				if (vSetVals.interstim != 0) {
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
-						GetColor(0, 0, 0), TRUE);
-
-					while (!ScreenFlip()) {
-						Count++;
-						if (Count >= vSetVals.interstim) {
-							Count = 0;
-							break;
-						}
-					}
+						colHandle[0], TRUE);
+					vs.WaitFramesDraw(vSetVals.interstim);
+					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
+						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
+						colHandle[1], TRUE);
+				}else{
+					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
+						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
+						colHandle[i % 2], TRUE);
 				}
-				else {
-					patch = 255 + i % 2;
-				}
-				DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
-					vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
-					GetColor(patch, patch, patch), TRUE);
+				break;
 			}
-
-
-
-			//fps.Update();	//更新
-			//fps.Draw();
-			DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
-			while (!ScreenFlip()) {
-				Count++;
-				if (Count == vSetVals.duration) {
-					Count = 0;
-					break;
-				}
-				//wf << Count;
-			}
+			vs.WaitFramesDraw(vSetVals.duration);
 
 			tend2 = CFileTime::GetCurrentTime();
 			ctimep = tend2 - tstart2;
@@ -254,51 +256,34 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			ClearDrawScreen();
 			clsDx();
 		}
-		for (size_t i = 0; i < filenames.size(); i++)
-		{
-			 wf << act_filenames[i].c_str() << endl;
-		}
-		ClearDrawScreen();
-		i = 0;
 		// FPS算出 & 記録
-		const auto endTime = std::chrono::system_clock::now();
+		endTime = std::chrono::system_clock::now();
 		tend = CFileTime::GetCurrentTime(); ;
 		ctimep = tend - tstart;
 		auto timeSpan = endTime - startTime;
+		wf << "# Trial:" << j+1 << " ";
 		wf << filenames.size() << " [frames], ";
 		wf << ctimep.GetTimeSpan() / 10000.0 << " [ms (ctime)], "; //[ms]
 		wf << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << " [ms (chrono)], " ;
-		wf << float(1000.0*filenames.size()) / (ctimep.GetTimeSpan() / 10000.0) << " [FPS]" << endl;
+		wf << float(1000.0*filenames.size()) / (ctimep.GetTimeSpan() / 10000.0) << " [images/sec]" << endl;
 		//wf << float(filenames.size()) / float(std:chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count()) << endl;
-		Beep(440*1000, 100);
+		for (size_t i = 0; i < filenames.size(); i++)
+		{
+			wf << act_filenames[i].c_str() << ", " << frameinterval[i] << endl;
+		}
 	}
 
 #pragma endregion
 	// 最後にendframe分だけまつ
-	Count = 0;
-	while (!ScreenFlip() && !ProcessMessage() && !ClearDrawScreen()) {
-		Count++;
-		if (Count == endf) {
-			//1秒たった時の処理
-			Count = 0;
-			break;
-		}
-	}
-
-	// デバック用領域
-	for (size_t i = 0; i < filenames.size(); i++)
-	{
-		wf << frameinterval[i] << endl;
-	}
-
-#pragma region Finalize
-	Beep(440 * 1000, 100);
-	Beep(440 * 1000, 100);
+	vs.WaitFramesDraw(endf);
+	
 	free(frameinterval);
 	ProcessMessage();
 	ClearDrawScreen();
 	DxLib_End();
 	wf.close();
+	Beep(440 * 1000, 100);
+	Beep(440 * 1000, 100);
 	return 0;
 #pragma endregion
 }

@@ -10,6 +10,8 @@
 #include <boost/optional.hpp>
 #include <stdio.h>
 #include <conio.h>
+#include <string>
+
 #include "VisSet.h"
 
 #endif
@@ -26,6 +28,7 @@ public:
 		int nbit;
 		
 		//[Stim]
+		bool shuffle;
 		int interstim;
 		int duration;
 		int ntrial;
@@ -33,7 +36,8 @@ public:
 		int posX;
 		int	posY;
 		int bgcolor;
-		std::string imgroot="samples";
+		std::string imgroot;
+		std::string imgext;
 
 		//[Patch]
 		bool patch_Exist; //bool of patch showing
@@ -47,16 +51,24 @@ public:
 		bool dbg_windowmode;
 	};
 
-
+	int Count = 0;
+	int Suc = 0;
+	float ctimespan;
 	visSet();
 	~visSet();
 
 	void SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsync, int bg);
 
 	int getInitFileName(char* fileName, int fileNameLength, const char* fileFilter);
-	std::vector<std::string> getImgFiles(const std::string& dir_name, const std::string& extension);
+	std::vector<std::string> getImgFiles(const std::string& dir_name, std::string& extension);
 
 	int loadIni(struct setting* myset, char *fileName);
+
+	int showPatch(int x, int y, int size, unsigned int Col, int durf, bool fill);
+
+	int WaitFramesDraw(int durf);
+	
+	int showDebugInfo(bool debugF, unsigned int colorhandle, std::string filename, LONGLONG timespan, int iter, int imgnum);
 
 };
 

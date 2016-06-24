@@ -26,7 +26,7 @@ int visSet::getInitFileName(char* fileName, int fileNameLength, const char* file
 	return GetOpenFileName(&ofn);
 }
 
-std::vector<std::string> visSet::getImgFiles(const std::string& dir_name, const std::string& extension) noexcept(false)
+std::vector<std::string> visSet::getImgFiles(const std::string& dir_name, std::string& extension) noexcept(false)
 {
 	HANDLE hFind;
 	WIN32_FIND_DATA win32fd;//defined at Windwos.h
@@ -38,7 +38,7 @@ std::vector<std::string> visSet::getImgFiles(const std::string& dir_name, const 
 	hFind = FindFirstFile(search_name.c_str(), &win32fd);
 
 	if (hFind == INVALID_HANDLE_VALUE) {
-		throw std::runtime_error("file not found");
+		throw std::runtime_error("File not found! Check your .ini file!");
 	}
 
 	do {
@@ -78,12 +78,14 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->nbit  = (pt.get_optional<int>("Display.nbit")).get();
 
 	//[Stim]
+	myset->shuffle = (pt.get_optional<int>("Stim.shuffle")).get();
 	myset->interstim = (pt.get_optional<int>("Stim.interstim")).get();
 	myset->duration   = (pt.get_optional<int>("Stim.duration")).get();
 	myset->intertrial = (pt.get_optional<int>("Stim.intertrial")).get();
 	myset->posX = (pt.get_optional<int>("Stim.posX")).get();
 	myset->posY = (pt.get_optional<int>("Stim.posY")).get();
 	myset->imgroot = (pt.get_optional<std::string>("Stim.imgroot")).get();
+	myset->imgext = (pt.get_optional<std::string>("Stim.imgext")).get();
 	myset->ntrial = (pt.get_optional<int>("Stim.ntrial")).get();
 	myset->bgcolor = (pt.get_optional<int>("Stim.bgcolor")).get();
 	
@@ -95,9 +97,45 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->patch_Size = (pt.get_optional<int>("Patch.size")).get();
 
 	//Debug
-	myset->dbg_values = (pt.get_optional<int>("Debug.values")).get();
 	myset->dbg_imgname = (pt.get_optional<int>("Debug.imgname")).get();
 	myset->dbg_windowmode = (pt.get_optional<int>("Debug.windowmode")).get();
 	return 1;
 }
 
+int visSet::showPatch(int x, int y, int size, unsigned int Colh, int durf, bool fill)
+{
+	Count = 0;
+	DrawBox(x, y, x + size, y + size, Colh, fill);
+	WaitFramesDraw(durf);
+	return 1;
+}
+
+int visSet::WaitFramesDraw(int durf)
+{
+	Count = 0;
+	while (!ScreenFlip()) {
+		Count++;
+		if (Count >= durf) {
+			break;
+		}
+	}
+	return Count;
+}
+
+int visSet::showDebugInfo(bool debugF, unsigned int colorhandle, std::string filename, LONGLONG timespan, int iter, int imgnum)
+{
+	switch (debugF)
+	{
+	case true:
+		ctimespan = 1.0f/((float)timespan / 10000000.0f);
+		DrawFormatString(640,  0, colorhandle, "No.  : %d / %d", iter, imgnum);
+		DrawFormatString(640, 15, colorhandle, "File : %s", filename.c_str());
+		DrawFormatString(640, 30, colorhandle, "FPS  : %f", ctimespan); 
+		Suc = 1;
+		break;
+	case false:
+		Suc = 0;
+		break;
+	}
+	return Suc;
+}
