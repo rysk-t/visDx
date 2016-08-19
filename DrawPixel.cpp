@@ -27,7 +27,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	vector<std::string> act_filenames;
 
 	unsigned int Handles[2048 * 16];     // データハンドル格納
-	unsigned int sOrder[2048 * 16];     // データハンドル格納
 	unsigned int Key = 0;
 	int textc = GetColor(255, 0, 0);
 	int FpsTime[2] = { 0, }, FpsTime_i = 0;
@@ -124,14 +123,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (GetAsyncKeyState(VK_ESCAPE)) {
 			ProcessMessage();
 			ClearDrawScreen();
-			DxLib_End();   // DXライブラリ終了処理
+			DxLib_End();
 			return -1;
 		}
 	}
 
 #pragma endregion
 
-	// Blank
+	// Show Stimulus Info
 	ClearDrawScreen();
 	DrawFormatString(0, 0, textc, "READY: %d images (%s), PRESS T for start (D for test)", filenames.size(), vSetVals.imgext.c_str());
 	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str());
@@ -141,8 +140,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		(1.0 / vSetVals.rate)*vSetVals.ntrial*(
 			filenames.size()*(vSetVals.interstim+vSetVals.duration) + 
 			vSetVals.intertrial));
-
-
 	//DrawFormatString(0, 45, textc, (dataset->dbg_imgname));
 	ScreenFlip();
 
@@ -159,11 +156,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		else if (CheckHitKey(KEY_INPUT_D) != 0) 
 		{
+			// Debug mode: display FPS & filename
 			dbg_mode = true;
 			break;
 		}
-
-
 	}
 	
 
@@ -214,8 +210,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			patch = 255;
 			tstart2 = CFileTime::GetCurrentTime(); ;
 
-			// patch Exist?
-			vs.showDebugInfo(dbg_mode, colHandle[2], filenames[fileidx[i]], frameinterval[i-1], i, filenames.size());
 
 			switch (vSetVals.patch_Exist)
 			{
@@ -239,24 +233,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				}
 				break;
 			}
+
+			// Print Debug info
+			vs.showDebugInfo(dbg_mode, colHandle[2], filenames[fileidx[i]], frameinterval[i - 1], i, filenames.size());
+			
+			// Draw & Vertical Sync
 			vs.WaitFramesDraw(vSetVals.duration);
 
 			tend2 = CFileTime::GetCurrentTime();
 			ctimep = tend2 - tstart2;
 			frameinterval[i] = ctimep.GetTimeSpan();
 
-			// 途中終了処理(ESCキー)
+			// quit sequence (ESC)
 			if (GetAsyncKeyState(VK_ESCAPE)) {
 				ProcessMessage();
 				ClearDrawScreen();
-				DxLib_End();   // DXライブラリ終了処理
+				DxLib_End();
 				return -1;
 			}
-			//fps.Wait();		//待機
+			//fps.Wait();		
 			ClearDrawScreen();
 			clsDx();
 		}
-		// FPS算出 & 記録
+		// FPS Logging
 		endTime = std::chrono::system_clock::now();
 		tend = CFileTime::GetCurrentTime(); ;
 		ctimep = tend - tstart;
@@ -287,7 +286,4 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	return 0;
 #pragma endregion
 }
-
-// 画像ファイル一覧取得
-
 

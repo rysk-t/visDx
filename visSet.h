@@ -31,7 +31,7 @@ public:
 		bool shuffle;
 		int interstim;
 		int duration;
-		int ntrial;
+		unsigned int ntrial;
 		int intertrial;
 		int posX;
 		int	posY;
