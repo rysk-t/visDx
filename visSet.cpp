@@ -9,6 +9,7 @@ visSet::~visSet()
 {
 }
 
+
 int visSet::getInitFileName(char* fileName, int fileNameLength, const char* fileFilter)
 {
 	OPENFILENAME ofn;
@@ -25,6 +26,7 @@ int visSet::getInitFileName(char* fileName, int fileNameLength, const char* file
 	fileName[0] = 0;
 	return GetOpenFileName(&ofn);
 }
+
 
 std::vector<std::string> visSet::getImgFiles(const std::string& dir_name, std::string& extension) noexcept(false)
 {
@@ -53,6 +55,7 @@ std::vector<std::string> visSet::getImgFiles(const std::string& dir_name, std::s
 	return file_names;
 }
 
+
 void visSet::SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsync, int bg)
 {
 	ChangeWindowMode(wmode);
@@ -60,8 +63,6 @@ void visSet::SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsyn
 	SetBackgroundColor(bg, bg, bg);
 	SetWaitVSyncFlag(vsync);
 }
-
-
 
 
 int visSet::loadIni(struct setting* myset, char *fileName)
@@ -102,6 +103,7 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	return 1;
 }
 
+
 int visSet::showPatch(int x, int y, int size, unsigned int Colh, int durf, bool fill)
 {
 	Count = 0;
@@ -109,6 +111,7 @@ int visSet::showPatch(int x, int y, int size, unsigned int Colh, int durf, bool 
 	WaitFramesDraw(durf);
 	return 1;
 }
+
 
 int visSet::WaitFramesDraw(int durf)
 {
@@ -121,6 +124,7 @@ int visSet::WaitFramesDraw(int durf)
 	}
 	return Count;
 }
+
 
 int visSet::showDebugInfo(bool debugF, unsigned int colorhandle, std::string filename, LONGLONG timespan, int iter, int imgnum)
 {

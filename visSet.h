@@ -1,5 +1,5 @@
-#ifndef MY_INCLUDE
-#define MY_INCLUDE
+//#ifndef MY_INCLUDE
+//#define MY_INCLUDE
 #pragma once
 #include "Windows.h"
 #include "DxLib.h"
@@ -14,7 +14,7 @@
 
 #include "VisSet.h"
 
-#endif
+//#endif
 
 class visSet
 {
@@ -60,6 +60,7 @@ public:
 	void SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsync, int bg);
 
 	int getInitFileName(char* fileName, int fileNameLength, const char* fileFilter);
+
 	std::vector<std::string> getImgFiles(const std::string& dir_name, std::string& extension);
 
 	int loadIni(struct setting* myset, char *fileName);

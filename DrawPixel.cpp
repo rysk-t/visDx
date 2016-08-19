@@ -172,6 +172,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	for (size_t j = 0; j < vSetVals.ntrial; j++) {
 		act_filenames = filenames;
 
+		// Shuffle stimulus sequence
 		if (vSetVals.shuffle)
 		{
 			srand(j*100);
@@ -209,11 +210,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//DrawFormatString(0, 10, textc, "%s", filenames[i].c_str()); //TODO TEST
 			patch = 255;
 			tstart2 = CFileTime::GetCurrentTime(); ;
-
-
 			switch (vSetVals.patch_Exist)
 			{
 			case 0:
+				DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 				break;
 			case 1:
 				if (vSetVals.interstim != 0) {
