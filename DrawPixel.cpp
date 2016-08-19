@@ -42,6 +42,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	unsigned int endf = 120;
 	unsigned int Count = 0;
+	unsigned int colHandle[3] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255) };
 
 	bool dbg_mode = false;
 
@@ -184,22 +185,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
 		}
 
-
 		for (int i = 0; i < filenames.size(); i++)
 		{
 			act_filenames[i] = filenames[fileidx[i]];
 		}
 
+		// Pretrial screen
 		ClearDrawScreen();
+		if (vSetVals.patch_Exist == 1)
+		{
+			DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
+				vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
+				colHandle[0], TRUE);
+		}
 		vs.WaitFramesDraw(vSetVals.intertrial);
 
-		// FPS‘ª’è—pŠÖ”
+		// FPS calculation
 		startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
 		ctimep = tstart - tstart;
-
-
-		unsigned int colHandle[3] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255)};
 
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
