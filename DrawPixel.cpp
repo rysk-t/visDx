@@ -233,7 +233,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
-						colHandle[i % 2], TRUE);
+						colHandle[!(i % 2)], TRUE);
 				}
 				break;
 			}
