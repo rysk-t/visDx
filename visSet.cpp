@@ -79,6 +79,7 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->nbit  = (pt.get_optional<int>("Display.nbit")).get();
 
 	//[Stim]
+	myset->seq_file = (pt.get_optional<int>("Stim.sequence")).get();
 	myset->shuffle = (pt.get_optional<int>("Stim.shuffle")).get();
 	myset->interstim = (pt.get_optional<int>("Stim.interstim")).get();
 	myset->duration   = (pt.get_optional<int>("Stim.duration")).get();

@@ -25,6 +25,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	vector<std::string> filenames;
 	vector<std::string> act_filenames;
+	std::string seqfile = "sequence.txt";
+	std::string str;
 
 	unsigned int Handles[2048 * 16];     // データハンドル格納
 	unsigned int Key = 0;
@@ -40,7 +42,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	frameinterval = (long long *)calloc(sizeof(long long), 10000);
 	auto endTime = std::chrono::system_clock::now();
 
-	unsigned int endf = 120;
 	unsigned int Count = 0;
 	unsigned int colHandle[3] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255) };
 
@@ -81,27 +82,53 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ScreenFlip();
 #pragma endregion
 
-
 #pragma region  Buffering-Images
-	//Get file name 
-	filenames = vs.getImgFiles(vSetVals.imgroot , vSetVals.imgext);
-	if (0==filenames.size())
+
+	if (vSetVals.seq_file == 1) 
 	{
-		return -1;
-	}
-	else {
-	DrawFormatString(0, 0, textc, "%d images will be loaded (%s)", filenames.size(), vSetVals.imgext.c_str());
-	DrawFormatString(0, 15, textc, "%s", (vSetVals.imgroot + filenames[0]).c_str());
-	//DrawFormatString(0,15, textc, "(%s file) ", vSetVals.imgext);
-	}
-	ScreenFlip();
+		// Get FileNames from imgroot/sequence.txt
+		ClearDrawScreen();
+		DrawFormatString(0, 0, textc, "%s will be loaded (%s)", (vSetVals.imgroot + seqfile).c_str(), vSetVals.imgext.c_str());
+		ScreenFlip();
+		vs.WaitFramesDraw(60);
+		i = 0;
+		while (getline(ifs, str)) 
+		{
+			filenames.push_back(str);
+			i = i + 1;
+		}
+		ClearDrawScreen();
+		if (filenames.size() == 0) {
+			DrawFormatString(0, 0, textc, "NO images from sequence.txt, check your imgroot directory!", i);
+			ScreenFlip();
+			vs.WaitFramesDraw(60);
+			return -1;
+		}else{
+			DrawFormatString(0, 0, textc, "%d filenames will be loaded in handle", i);
+			ScreenFlip();
+			vs.WaitFramesDraw(6);
+		}
+	}else{
+		// Get FileNames from imgroot
+		std::ifstream ifs(vSetVals.imgroot + seqfile);
 
-	// Shuffle
-
+		filenames = vs.getImgFiles(vSetVals.imgroot, vSetVals.imgext);
+		if (0 == filenames.size())
+		{
+			return -1;
+		}
+		else {
+			DrawFormatString(0, 0, textc, "%d images will be loaded (%s)", filenames.size(), vSetVals.imgext.c_str());
+			DrawFormatString(0, 15, textc, "%s", (vSetVals.imgroot + filenames[0]).c_str());
+			//DrawFormatString(0,15, textc, "(%s file) ", vSetVals.imgext);
+		}
+		ScreenFlip();
+	}
+	// Load Graphics
 	for (size_t i = 0; i < filenames.size(); i++)
 	{
 		//2GB 以上はバッファできない (32bit)
-	/*	error = fopen_s(&fp, (imgroot + filenames[i]).c_str(), "rb");
+		/*	error = fopen_s(&fp, (imgroot + filenames[i]).c_str(), "rb");
 		fseek(fp, 0L, SEEK_END);
 		graphSize = ftell(fp);
 		fseek(fp, 0L, SEEK_SET);
@@ -110,9 +137,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		Handles[i] = CreateGraphFromMem(Data, graphSize);
 		fclose(fp);
 		free(Data);*/
-		
+
 		// ファイル名だけをバッファするらしいが実行速度に影響しなかった．
-		Handles[i] = LoadGraph((vSetVals.imgroot + filenames[i]).c_str());
+		Handles[i] = LoadGraph((vSetVals.imgroot + filenames[i]).c_str()); //TODO
+
+		if (Handles[i] == -1) {
+			ClearDrawScreen();
+			DrawFormatString(0, 0, textc, "failed to load %s, check your imgroot directory & sequence.txt", filenames[i].c_str(), i);
+			ScreenFlip();
+			vs.WaitFramesDraw(120);
+			return -1;
+		}
+
 		if (0 == i % 128) {
 			ProcessMessage();
 			ClearDrawScreen();
@@ -131,6 +167,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma endregion
 
+#pragma region WaitStart
 	// Show Stimulus Info
 	ClearDrawScreen();
 	DrawFormatString(0, 0, textc, "READY: %d images (%s), PRESS T for start (D for test)", filenames.size(), vSetVals.imgext.c_str());
@@ -162,7 +199,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			break;
 		}
 	}
-	
+
+#pragma endregion
 
 #pragma region Stimulus-loop
 	vector<std::int16_t> fileidx(filenames.size());
@@ -199,7 +237,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				colHandle[0], TRUE);
 		}
 		vs.WaitFramesDraw(vSetVals.intertrial);
-
+		
 		// FPS calculation
 		startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
@@ -217,7 +255,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			switch (vSetVals.patch_Exist)
 			{
 			case 0:
-				DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+				DrawRotaGraphFast(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 				break;
 			case 1:
 				if (vSetVals.interstim != 0) {
@@ -225,12 +263,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[0], TRUE);
 					vs.WaitFramesDraw(vSetVals.interstim);
-					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+					DrawRotaGraphFast(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[1], TRUE);
 				}else{
-					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+					DrawRotaGraphFast(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[!(i % 2)], TRUE);
@@ -275,11 +313,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			wf << act_filenames[i].c_str() << ", " << frameinterval[i] << endl;
 		}
 	}
-
 #pragma endregion
-	// 最後にendframe分だけまつ
-	vs.WaitFramesDraw(endf);
-	
+
+#pragma region DXlib-Quit
+	vs.WaitFramesDraw(vSetVals.interstim);
 	free(frameinterval);
 	ProcessMessage();
 	ClearDrawScreen();

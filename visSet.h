@@ -38,6 +38,7 @@ public:
 		int bgcolor;
 		std::string imgroot;
 		std::string imgext;
+		bool seq_file;
 
 		//[Patch]
 		bool patch_Exist; //bool of patch showing
