@@ -225,7 +225,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
 		}
 
-		for (int i = 0; i < filenames.size(); i++)
+		for (unsigned int i = 0; i < filenames.size(); i++)
 		{
 			act_filenames[i] = filenames[fileidx[i]];
 		}
@@ -257,7 +257,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			switch (vSetVals.patch_Exist)
 			{
 			case 0:
-				DrawRotaGraphFast(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+				DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 				break;
 			case 1:
 				if (vSetVals.interstim != 0) {
@@ -265,12 +265,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[0], TRUE);
 					vs.WaitFramesDraw(vSetVals.interstim);
-					DrawRotaGraphFast(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[1], TRUE);
 				}else{
-					DrawRotaGraphFast(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[!(i % 2)], TRUE);
@@ -291,9 +291,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			// quit sequence (ESC)
 			if (GetAsyncKeyState(VK_ESCAPE)) {
 				ProcessMessage();
+				free(frameinterval);
 				ClearDrawScreen();
+				vs.WaitFramesDraw(2);
+				clsDx();
 				DxLib_End();
-				return -1;
+				wf.close();
+				return 0;
 			}
 			//fps.Wait();		
 			ClearDrawScreen();
@@ -318,7 +322,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma endregion
 
 #pragma region DXlib-Quit
-	vs.WaitFramesDraw(vSetVals.interstim);
+	vs.WaitFramesDraw(vSetVals.intertrial);
 	free(frameinterval);
 	ProcessMessage();
 	ClearDrawScreen();

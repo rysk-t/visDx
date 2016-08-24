@@ -77,11 +77,11 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->sizeY = (pt.get_optional<int>("Display.sizeY")).get();
 	myset->rate  = (pt.get_optional<int>("Display.rate")).get();
 	myset->nbit  = (pt.get_optional<int>("Display.nbit")).get();
-	myset->dbg_windowmode = (pt.get_optional<int>("Display.windowmode")).get();
+	myset->dbg_windowmode = (pt.get_optional<bool>("Display.windowmode")).get();
 
 	//[Stim]
-	myset->seq_file = (pt.get_optional<int>("Stim.sequence")).get();
-	myset->shuffle = (pt.get_optional<int>("Stim.shuffle")).get();
+	myset->seq_file = (pt.get_optional<bool>("Stim.sequence")).get();
+	myset->shuffle = (pt.get_optional<bool>("Stim.shuffle")).get();
 	myset->interstim = (pt.get_optional<int>("Stim.interstim")).get();
 	myset->duration   = (pt.get_optional<int>("Stim.duration")).get();
 	myset->intertrial = (pt.get_optional<int>("Stim.intertrial")).get();
@@ -94,7 +94,7 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	
 
 	//[Patch]
-	myset->patch_Exist = (pt.get_optional<int>("Patch.show")).get();
+	myset->patch_Exist = (pt.get_optional<bool>("Patch.show")).get();
 	myset->patch_X = (pt.get_optional<int>("Patch.posX")).get();
 	myset->patch_Y = (pt.get_optional<int>("Patch.posY")).get();
 	myset->patch_Size = (pt.get_optional<int>("Patch.size")).get();
