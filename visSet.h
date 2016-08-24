@@ -47,8 +47,6 @@ public:
 		int patch_Size;
 
 		//[Debug]
-		bool dbg_values;
-		bool dbg_imgname;
 		bool dbg_windowmode;
 	};
 

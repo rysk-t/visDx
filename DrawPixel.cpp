@@ -87,6 +87,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (vSetVals.seq_file == 1) 
 	{
 		// Get FileNames from imgroot/sequence.txt
+
+		std::ifstream ifs(vSetVals.imgroot + seqfile);
+
 		ClearDrawScreen();
 		DrawFormatString(0, 0, textc, "%s will be loaded (%s)", (vSetVals.imgroot + seqfile).c_str(), vSetVals.imgext.c_str());
 		ScreenFlip();
@@ -178,7 +181,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		(1.0 / vSetVals.rate)*vSetVals.ntrial*(
 			filenames.size()*(vSetVals.interstim+vSetVals.duration) + 
 			vSetVals.intertrial));
-	//DrawFormatString(0, 45, textc, (dataset->dbg_imgname));
 	ScreenFlip();
 
 	while (ProcessMessage() == 0)

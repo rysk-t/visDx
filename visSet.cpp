@@ -77,6 +77,7 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->sizeY = (pt.get_optional<int>("Display.sizeY")).get();
 	myset->rate  = (pt.get_optional<int>("Display.rate")).get();
 	myset->nbit  = (pt.get_optional<int>("Display.nbit")).get();
+	myset->dbg_windowmode = (pt.get_optional<int>("Display.windowmode")).get();
 
 	//[Stim]
 	myset->seq_file = (pt.get_optional<int>("Stim.sequence")).get();
@@ -99,8 +100,6 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->patch_Size = (pt.get_optional<int>("Patch.size")).get();
 
 	//Debug
-	myset->dbg_imgname = (pt.get_optional<int>("Debug.imgname")).get();
-	myset->dbg_windowmode = (pt.get_optional<int>("Debug.windowmode")).get();
 	return 1;
 }
 
