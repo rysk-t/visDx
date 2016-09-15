@@ -39,6 +39,7 @@ public:
 		std::string imgroot;
 		std::string imgext;
 		bool seq_file;
+		double magni;
 
 		//[Patch]
 		bool patch_Exist; //bool of patch showing

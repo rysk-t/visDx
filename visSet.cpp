@@ -91,7 +91,7 @@ int visSet::loadIni(struct setting* myset, char *fileName)
 	myset->imgext = (pt.get_optional<std::string>("Stim.imgext")).get();
 	myset->ntrial = (pt.get_optional<int>("Stim.ntrial")).get();
 	myset->bgcolor = (pt.get_optional<int>("Stim.bgcolor")).get();
-	
+	myset->magni = (pt.get_optional<double>("Stim.magni")).get();
 
 	//[Patch]
 	myset->patch_Exist = (pt.get_optional<bool>("Patch.show")).get();

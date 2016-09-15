@@ -43,7 +43,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	auto endTime = std::chrono::system_clock::now();
 
 	unsigned int Count = 0;
-	unsigned int colHandle[3] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255) };
+	unsigned int colHandle[4] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255), GetColor(127, 127, 127)};
 
 	bool dbg_mode = false;
 
@@ -76,10 +76,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		vSetVals.nbit,
 		TRUE, // vsync option
 		vSetVals.bgcolor);
+	colHandle[3] = GetColor(vSetVals.bgcolor, vSetVals.bgcolor, vSetVals.bgcolor);
 	if (DxLib_Init())
 		return -1;   // DXÉâÉCÉuÉâÉäèâä˙âªèàóù
 	SetDrawScreen(DX_SCREEN_BACK);
 	ScreenFlip();
+	SetMainWindowText("VSTIM");
 #pragma endregion
 
 #pragma region  Buffering-Images
@@ -265,12 +267,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[0], TRUE);
 					vs.WaitFramesDraw(vSetVals.interstim);
-					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+					DrawRotaGraph(vSetVals.posX, vSetVals.posY, vSetVals.magni, 0, Handles[fileidx[i]], FALSE);
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[1], TRUE);
 				}else{
-					DrawRotaGraph(vSetVals.posX, vSetVals.posY, 1, 0, Handles[fileidx[i]], FALSE);
+					DrawRotaGraph(vSetVals.posX, vSetVals.posY, vSetVals.magni, 0, Handles[fileidx[i]], FALSE);
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[!(i % 2)], TRUE);
