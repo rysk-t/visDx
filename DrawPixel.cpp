@@ -8,6 +8,7 @@
 #include "visSet.h"
 #include <random>
 #include <algorithm>
+#include <direct.h>
 #define PI 3.141592654
 
 using namespace std;
@@ -17,37 +18,38 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma region Values
 
 	visSet vs;
+	visSet::setting vSetVals;
+
 	CTime theTime;
 	CFileTime tstart, tend;
 	CFileTime tstart2, tend2; // てすと用
 	CFileTimeSpan ctimep;
-	std::ofstream wf;
-
+	
+	char cfile[256];
 	vector<std::string> filenames;
 	vector<std::string> act_filenames;
 	std::string seqfile = "sequence.txt";
 	std::string str;
+	std::string ConfFile = cfile;
+	std::ofstream wf;
+	errno_t error;
+	LONGLONG *frameinterval;
 
-	unsigned int Handles[2048 * 16];     // データハンドル格納
-	unsigned int Key = 0;
+	bool dbg_mode = false;
+	bool bRAM_Fullbuffer = false;
 	int textc = GetColor(255, 0, 0);
 	int FpsTime[2] = { 0, }, FpsTime_i = 0;
 	int patch = 0;
 	int i = 0;
-	errno_t error;
-	bool bRAM_Fullbuffer = false;
-	char cfile[256];
-	std::string ConfFile = cfile;
-	LONGLONG *frameinterval;
+
 	frameinterval = (long long *)calloc(sizeof(long long), 10000);
 	auto endTime = std::chrono::system_clock::now();
 
+	unsigned int Handles[2048 * 16];     // データハンドル格納
+	unsigned int Key = 0;
 	unsigned int Count = 0;
 	unsigned int colHandle[4] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255), GetColor(127, 127, 127)};
 
-	bool dbg_mode = false;
-
-	visSet::setting vSetVals;
 
 # pragma endregion
 
@@ -332,7 +334,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wf.close();
 	Beep(440 * 1000, 100);
 	Beep(440 * 1000, 100);
-	return 0;
 #pragma endregion
+
+
+#pragma region ini & sequence backup
+	//_mkdir
+	system("mkdir Logs > NUL 2>&1");
+	system("mv ShowLog_* Logs");
+
+#pragma endregion
+
+	return 0;
+
 }
 
