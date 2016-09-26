@@ -24,11 +24,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	CFileTime tstart, tend;
 	CFileTime tstart2, tend2; // てすと用
 	CFileTimeSpan ctimep;
-	
+
 	char cfile[256];
 	vector<std::string> filenames;
 	vector<std::string> act_filenames;
 	std::string seqfile = "sequence.txt";
+	std::string logfile = "sequence.txt";
 	std::string str;
 	std::string ConfFile = cfile;
 	std::ofstream wf;
@@ -48,7 +49,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	unsigned int Handles[2048 * 16];     // データハンドル格納
 	unsigned int Key = 0;
 	unsigned int Count = 0;
-	unsigned int colHandle[4] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255), GetColor(127, 127, 127)};
+	unsigned int colHandle[4] = { GetColor(0, 0, 0), GetColor(255, 255,255), GetColor(255, 0, 255), GetColor(127, 127, 127) };
 
 
 # pragma endregion
@@ -64,7 +65,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma region Log-writing
 	// Log file
 	theTime = CTime::GetCurrentTime();
-	wf.open("ShowLog_" + theTime.Format("%Y%m%d%H%M") + ".txt");
+	logfile = "ShowLog_" + theTime.Format("%Y%m%d%H%M") + ".txt";
+	wf.open(logfile);
 	wf << "Images: " << vSetVals.imgroot << endl;
 
 	// 現在時刻
@@ -88,7 +90,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #pragma region  Buffering-Images
 
-	if (vSetVals.seq_file == 1) 
+	if (vSetVals.seq_file == 1)
 	{
 		// Get FileNames from imgroot/sequence.txt
 
@@ -99,7 +101,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ScreenFlip();
 		vs.WaitFramesDraw(60);
 		i = 0;
-		while (getline(ifs, str)) 
+		while (getline(ifs, str))
 		{
 			filenames.push_back(str);
 			i = i + 1;
@@ -110,12 +112,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			ScreenFlip();
 			vs.WaitFramesDraw(60);
 			return -1;
-		}else{
+		}
+		else {
 			DrawFormatString(0, 0, textc, "%d filenames will be loaded in handle", i);
 			ScreenFlip();
 			vs.WaitFramesDraw(6);
 		}
-	}else{
+	}
+	else {
 		// Get FileNames from imgroot
 		std::ifstream ifs(vSetVals.imgroot + seqfile);
 
@@ -179,11 +183,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ClearDrawScreen();
 	DrawFormatString(0, 0, textc, "READY: %d images (%s), PRESS T for start (D for test)", filenames.size(), vSetVals.imgext.c_str());
 	DrawFormatString(0, 15, textc, ("Configfile: " + ConfFile).c_str());
-	DrawFormatString(0, 30, textc, ("Images from: "+ vSetVals.imgroot).c_str());
+	DrawFormatString(0, 30, textc, ("Images from: " + vSetVals.imgroot).c_str());
 	DrawFormatString(0, 45, textc, "Number of iteration: %d", vSetVals.ntrial);
 	DrawFormatString(0, 60, textc, "Estimated Recording Duration: %f [sec]",
 		(1.0 / vSetVals.rate)*vSetVals.ntrial*(
-			filenames.size()*(vSetVals.interstim+vSetVals.duration) + 
+			filenames.size()*(vSetVals.interstim + vSetVals.duration) +
 			vSetVals.intertrial));
 	ScreenFlip();
 
@@ -198,7 +202,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			break;
 		}
-		else if (CheckHitKey(KEY_INPUT_D) != 0) 
+		else if (CheckHitKey(KEY_INPUT_D) != 0)
 		{
 			// Debug mode: display FPS & filename
 			dbg_mode = true;
@@ -220,7 +224,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		// Shuffle stimulus sequence
 		if (vSetVals.shuffle)
 		{
-			srand(j*100);
+			srand(j * 100);
 			for (int i = 0; i != filenames.size(); ++i) fileidx[i] = i;
 			std::random_shuffle(fileidx.begin(), fileidx.end());
 		}
@@ -243,7 +247,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				colHandle[0], TRUE);
 		}
 		vs.WaitFramesDraw(vSetVals.intertrial);
-		
+
 		// FPS calculation
 		startTime = std::chrono::system_clock::now();
 		tstart = CFileTime::GetCurrentTime();
@@ -251,7 +255,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		for (size_t i = 0; i < filenames.size(); i++)
 		{
-			
+
 			//printfDx("%d", fileidx[i]);
 			// デバック
 			//printfDx("%d/%d: act_filename: %s", j+1, vSetVals.ntrial, act_filenames[i].c_str());
@@ -273,7 +277,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
 						colHandle[1], TRUE);
-				}else{
+				}
+				else {
 					DrawRotaGraph(vSetVals.posX, vSetVals.posY, vSetVals.magni, 0, Handles[fileidx[i]], FALSE);
 					DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
 						vSetVals.patch_X + vSetVals.patch_Size, vSetVals.patch_Y + vSetVals.patch_Size,
@@ -284,7 +289,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			// Print Debug info
 			vs.showDebugInfo(dbg_mode, colHandle[2], filenames[fileidx[i]], frameinterval[i - 1], i, filenames.size());
-			
+
 			// Draw & Vertical Sync
 			vs.WaitFramesDraw(vSetVals.duration);
 
@@ -312,10 +317,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		tend = CFileTime::GetCurrentTime(); ;
 		ctimep = tend - tstart;
 		auto timeSpan = endTime - startTime;
-		wf << "# Trial:" << j+1 << " ";
+		wf << "# Trial:" << j + 1 << " ";
 		wf << filenames.size() << " [frames], ";
 		wf << ctimep.GetTimeSpan() / 10000.0 << " [ms (ctime)], "; //[ms]
-		wf << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << " [ms (chrono)], " ;
+		wf << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << " [ms (chrono)], ";
 		wf << float(1000.0*filenames.size()) / (ctimep.GetTimeSpan() / 10000.0) << " [images/sec]" << endl;
 		//wf << float(filenames.size()) / float(std:chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count()) << endl;
 		for (size_t i = 0; i < filenames.size(); i++)
@@ -340,8 +345,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma region ini & sequence backup
 	//_mkdir
 	system("mkdir Logs > NUL 2>&1");
+	std::string copyini = logfile + "-" + ConfFile;
+	CopyFile(ConfFile.c_str(), (logfile + "." + PathFindFileName(ConfFile.c_str())).c_str(), false);
+	CopyFile("Log.txt", (logfile + "." + "DXlibLog.txt").c_str(), false);
+	if (vSetVals.seq_file == 1) {
+		CopyFile((vSetVals.imgroot + seqfile).c_str(), (logfile + "." + "sequence.txt").c_str(), true);
+	}
 	system("mv ShowLog_* Logs");
-
+	system(("echo Succes-logFile/" + (logfile + "-" + PathFindFileName(ConfFile.c_str()) + ".txt") + " && sleep 3").c_str());
+	//system("sleep 10");
 #pragma endregion
 
 	return 0;
