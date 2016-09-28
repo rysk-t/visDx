@@ -33,6 +33,7 @@ sequence=0; use sequence file (1 or 0)
 imgroot=images_\\; image file location
 imgext=bmp; image file ext
 bgcolor=127; background color
+magni=1.0; magnification of stimulus
 
 [Patch]
 show=1; show patch (1 or 0)
