@@ -351,8 +351,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (vSetVals.seq_file == 1) {
 		CopyFile((vSetVals.imgroot + seqfile).c_str(), (logfile + "." + "sequence.txt").c_str(), true);
 	}
-	system("mv ShowLog_* Logs");
-	system(("echo Succes-logFile/" + (logfile + "-" + PathFindFileName(ConfFile.c_str()) + ".txt") + " && sleep 3").c_str());
+	system("move ShowLog_* Logs");
+	system(("echo Success-logFile/" + (logfile + "-" + PathFindFileName(ConfFile.c_str()) + ".txt") + " && sleep 3").c_str());
 	//system("sleep 10");
 #pragma endregion
 
