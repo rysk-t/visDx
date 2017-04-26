@@ -56,10 +56,10 @@ std::vector<std::string> visSet::getImgFiles(const std::string& dir_name, std::s
 }
 
 
-void visSet::SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsync, int bg)
+void visSet::SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsync, int bg, int rate)
 {
 	ChangeWindowMode(wmode);
-	SetGraphMode(sizex, sizey, bitn);
+	SetGraphMode(sizex, sizey, bitn, rate);
 	SetBackgroundColor(bg, bg, bg);
 	SetWaitVSyncFlag(vsync);
 }
@@ -116,10 +116,12 @@ int visSet::showPatch(int x, int y, int size, unsigned int Colh, int durf, bool 
 int visSet::WaitFramesDraw(int durf)
 {
 	Count = 0;
-	while (!ScreenFlip()) {
-		Count++;
-		if (Count >= durf) {
-			break;
+	if (durf > 0) {
+		while (!ScreenFlip()) {
+			Count++;
+			if (Count >= durf) {
+				break;
+			}
 		}
 	}
 	return Count;

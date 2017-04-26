@@ -63,6 +63,8 @@ public:
 
 	std::vector<std::string> getImgFiles(const std::string& dir_name, std::string& extension);
 
+	void SettingScreen(bool wmode, int sizex, int sizey, int bitn, bool vsync, int bg, int rate=60);
+
 	int loadIni(struct setting* myset, char *fileName);
 
 	int showPatch(int x, int y, int size, unsigned int Col, int durf, bool fill);

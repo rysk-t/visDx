@@ -79,7 +79,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		vSetVals.sizeY,
 		vSetVals.nbit,
 		TRUE, // vsync option
-		vSetVals.bgcolor);
+		vSetVals.bgcolor,
+		vSetVals.rate
+		);
 	colHandle[3] = GetColor(vSetVals.bgcolor, vSetVals.bgcolor, vSetVals.bgcolor);
 	if (DxLib_Init())
 		return -1;   // DXÉâÉCÉuÉâÉäèâä˙âªèàóù
@@ -110,7 +112,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (filenames.size() == 0) {
 			DrawFormatString(0, 0, textc, "NO images from sequence.txt, check your imgroot directory!", i);
 			ScreenFlip();
-			vs.WaitFramesDraw(60);
+			vs.WaitFramesDraw(60*2);
 			return -1;
 		}
 		else {
@@ -217,7 +219,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::random_device rnd;
 	std::mt19937 mt(rnd());
 	auto startTime = std::chrono::system_clock::now();
-
+	ClearDrawScreen();
 	for (size_t j = 0; j < vSetVals.ntrial; j++) {
 		act_filenames = filenames;
 
@@ -239,7 +241,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 		// Pretrial screen
-		ClearDrawScreen();
 		if (vSetVals.patch_Exist == 1)
 		{
 			DrawBox(vSetVals.patch_X, vSetVals.patch_Y,
